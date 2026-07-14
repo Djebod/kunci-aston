@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12181F">
+<title>Key Management — Aston Cirebon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --slate:#12181F; --slate-2:#1B242F; --line:#2B3644;
+    --brass:#C89B3C; --brass-dim:#8C6D2A;
+    --paper:#EDEFF2; --muted:#8A97A6;
+    --green:#3FA96B; --red:#D8544F; --violet:#8B7BD8; --blue:#5B93D6;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--slate);color:var(--paper);
+    font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5;
+    padding-bottom:env(safe-area-inset-bottom)}
+  h1,h2,h3{font-family:'Barlow Condensed',sans-serif;letter-spacing:.02em;margin:0}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+  .hide{display:none!important}
+
+  header{position:sticky;top:0;z-index:20;background:rgba(18,24,31,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .hbar{display:flex;align-items:center;gap:12px;height:60px}
+  .brand{display:flex;align-items:baseline;gap:8px}
+  .brand .t{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase}
+  .brand .s{font-size:11px;color:var(--brass);text-transform:uppercase;letter-spacing:.14em}
+  .spacer{flex:1}
+  .who{text-align:right;line-height:1.25}
+  .who b{display:block;font-size:13px}
+  .who span{font-size:11px;color:var(--muted)}
+
+  nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{background:none;border:0;color:var(--muted);padding:12px 14px;cursor:pointer;white-space:nowrap;
+    font:600 12px/1 Inter,sans-serif;letter-spacing:.1em;text-transform:uppercase;
+    border-bottom:2px solid transparent;margin-bottom:-1px}
+  nav button:hover{color:var(--paper)}
+  nav button[aria-selected="true"]{color:var(--brass);border-bottom-color:var(--brass)}
+
+  /* key tag */
+  .tags{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
+  .tag{position:relative;background:var(--slate-2);border:1px solid var(--line);
+    border-radius:6px 6px 10px 10px;padding:26px 12px 12px;cursor:pointer;text-align:left;
+    transition:border-color .12s,background .12s;color:inherit;font:inherit;width:100%}
+  .tag::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    width:11px;height:11px;border-radius:50%;background:var(--slate);border:1px solid var(--line)}
+  .tag:hover{border-color:var(--brass-dim)}
+  .tag[aria-pressed="true"]{background:#241E10;border-color:var(--brass)}
+  .tag[aria-pressed="true"]::after{content:'✓';position:absolute;top:6px;right:9px;
+    color:var(--brass);font-weight:700;font-size:13px}
+  .tag.lain{border-left:3px solid var(--blue)}
+  .tag .n{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;
+    text-transform:uppercase;line-height:1.15;min-height:2.3em}
+  .tag .k{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--brass);letter-spacing:.06em}
+  .tag .hold{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.35}
+  .tag .hold b{color:var(--blue);font-weight:600}
+
+  .card{background:var(--slate-2);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--slate-2);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .stat .v{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;line-height:1}
+  .stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-top:4px}
+  .stat.hot .v{color:var(--brass)}
+
+  button.btn{font:600 13px Inter,sans-serif;padding:11px 18px;border-radius:8px;border:1px solid var(--line);
+    background:var(--slate-2);color:var(--paper);cursor:pointer;transition:.12s}
+  button.btn:hover:not(:disabled){border-color:var(--brass-dim)}
+  button.btn:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--brass);border-color:var(--brass);color:#14100A}
+  button.primary:hover:not(:disabled){background:#DBAE49}
+  button.danger{color:var(--red)}
+  button.mini{padding:6px 10px;font-size:12px;border-radius:6px}
+
+  input,select,textarea{width:100%;background:#0D1319;border:1px solid var(--line);color:var(--paper);
+    border-radius:8px;padding:11px 12px;font:400 15px Inter,sans-serif}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brass);outline-offset:-1px;border-color:transparent}
+  label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.1em;margin:0 0 6px;font-weight:600}
+  .field{margin-bottom:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row > *{flex:1;min-width:130px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;
+    padding:10px 8px;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+  td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  tr.off td{opacity:.55}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+  .pill.pinjam{background:rgba(200,155,60,.16);color:var(--brass)}
+  .pill.kembali{background:rgba(63,169,107,.16);color:var(--green)}
+  .pill.admin{background:rgba(216,84,79,.16);color:var(--red)}
+  .pill.super{background:rgba(139,123,216,.18);color:var(--violet)}
+  .pill.staff{background:rgba(138,151,166,.14);color:var(--muted)}
+  .pill.wakil{background:rgba(91,147,214,.16);color:var(--blue)}
+  .pill.off{background:rgba(216,84,79,.14);color:var(--red)}
+  .pill.on{background:rgba(63,169,107,.14);color:var(--green)}
+
+  .login{min-height:100dvh;display:grid;place-items:center;padding:24px}
+  .login .box{width:100%;max-width:370px}
+  .login .mark{width:56px;height:56px;border-radius:6px 6px 12px 12px;border:1px solid var(--brass);
+    position:relative;margin:0 auto 20px;display:grid;place-items:flex-end center;padding-bottom:9px}
+  .login .mark::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);
+    width:12px;height:12px;border-radius:50%;border:1px solid var(--brass)}
+  .login .mark span{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--brass)}
+
+  .bar{position:sticky;bottom:0;background:rgba(18,24,31,.95);backdrop-filter:blur(8px);
+    border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    display:flex;gap:10px;align-items:center;z-index:20}
+  .bar .c{flex:1;font-size:13px;color:var(--muted);line-height:1.35}
+
+  .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;
+    background:var(--slate-2);border:1px solid var(--brass);border-radius:8px;
+    padding:12px 18px;font-size:13px;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.err{border-color:var(--red)}
+  .empty{color:var(--muted);text-align:center;padding:40px 16px;font-size:14px}
+  .sec{margin:26px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .sec h2{font-size:19px;text-transform:uppercase;font-weight:600}
+  .sec .rule{flex:1;height:1px;background:var(--line);min-width:20px}
+  .note{color:var(--muted);font-size:13px;margin:0 0 14px}
+  main{padding-top:18px;padding-bottom:24px}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<section id="vLogin" class="login">
+  <div class="box">
+    <div class="mark"><span>AC</span></div>
+    <h1 style="font-size:26px;text-align:center;text-transform:uppercase">Manajemen Kunci</h1>
+    <p style="text-align:center;color:var(--muted);font-size:12px;letter-spacing:.14em;
+              text-transform:uppercase;margin:6px 0 26px">Aston Cirebon</p>
+    <div class="card">
+      <div class="field"><label for="lEmail">Email</label>
+        <input id="lEmail" type="email" autocomplete="username" placeholder="nama@astoncirebon.com"></div>
+      <div class="field"><label for="lPass">Password</label>
+        <input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn primary" style="width:100%" id="btnLogin">Masuk</button>
+      <p id="lErr" class="hide" style="color:var(--red);font-size:13px;margin:12px 0 0"></p>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:11px;margin-top:18px">
+      Gunakan email yang terdaftar di HR.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="vApp" class="hide">
+  <header>
+    <div class="wrap">
+      <div class="hbar">
+        <div class="brand"><span class="t">Kunci</span><span class="s">Aston Cirebon</span></div>
+        <div class="spacer"></div>
+        <div class="who"><b id="uName">—</b><span id="uDept">—</span></div>
+        <button class="btn mini" id="btnLogout">Keluar</button>
+      </div>
+      <nav id="tabs"></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- PINJAM -->
+    <section id="tPinjam" class="tab">
+      <div class="sec"><h2>Pinjam kunci</h2><div class="rule"></div></div>
+      <p class="note">Maksimal 5 kunci sekali pinjam. Kunci yang dipinjam tercatat atas nama Anda.</p>
+      <div class="field" style="max-width:320px"><input id="qPinjam" placeholder="Cari nama kunci…"></div>
+      <div id="gridPinjam" class="tags"></div>
+    </section>
+
+    <!-- KEMBALIKAN -->
+    <section id="tKembali" class="tab hide">
+      <div class="sec"><h2>Kembalikan kunci</h2><div class="rule"></div></div>
+      <p class="note">
+        Anda boleh mengembalikan kunci rekan yang beda shift. Sistem tetap mencatat siapa peminjam
+        aslinya dan siapa yang mengembalikan.
+      </p>
+      <div class="field" style="max-width:320px"><input id="qKembali" placeholder="Cari kunci atau nama peminjam…"></div>
+
+      <div id="secMine">
+        <div class="sec"><h2>Kunci saya</h2><div class="rule"></div></div>
+        <div id="gridMine" class="tags"></div>
+      </div>
+
+      <div id="secLain">
+        <div class="sec"><h2>Kunci rekan yang masih beredar</h2><div class="rule"></div></div>
+        <div id="gridLain" class="tags"></div>
+      </div>
+    </section>
+
+    <!-- RIWAYAT -->
+    <section id="tRiwayat" class="tab hide">
+      <div class="sec"><h2>Riwayat saya</h2><div class="rule"></div></div>
+      <p class="note">Termasuk transaksi yang Anda proses untuk rekan.</p>
+      <div class="card scroll"><table id="tblMine"></table></div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="tDash" class="tab hide">
+      <div class="sec"><h2>Ringkasan</h2><div class="rule"></div></div>
+      <div class="stats">
+        <div class="stat"><div class="v" id="sTotal">0</div><div class="l">Total kunci</div></div>
+        <div class="stat hot"><div class="v" id="sOut">0</div><div class="l">Sedang dipinjam</div></div>
+        <div class="stat"><div class="v" id="sIn">0</div><div class="l">Tersedia</div></div>
+        <div class="stat"><div class="v" id="sUserOn">0</div><div class="l">User aktif</div></div>
+        <div class="stat"><div class="v" id="sUserOff">0</div><div class="l">Nonaktif</div></div>
+      </div>
+      <div class="sec"><h2>Belum dikembalikan</h2><div class="rule"></div></div>
+      <div class="card scroll"><table id="tblOut"></table></div>
+    </section>
+
+    <!-- KUNCI -->
+    <section id="tKeys" class="tab hide">
+      <div class="sec"><h2>Manajemen kunci</h2><div class="rule"></div>
+        <button class="btn primary mini" id="btnAddKey">+ Kunci</button></div>
+      <div class="field" style="max-width:320px"><input id="qKeys" placeholder="Cari kunci…"></div>
+      <div class="card scroll"><table id="tblKeys"></table></div>
+    </section>
+
+    <!-- USER -->
+    <section id="tUsers" class="tab hide">
+      <div class="sec"><h2>Manajemen user</h2><div class="rule"></div>
+        <button class="btn primary mini" id="btnAddUser">+ User</button></div>
+      <p class="note">
+        Karyawan resign → <b>Nonaktifkan</b>, jangan dihapus. Akunnya langsung tidak bisa login,
+        tapi seluruh riwayat peminjamannya tetap terlacak. Password tidak dapat dilihat siapa pun — hanya bisa direset.
+      </p>
+      <div class="field" style="max-width:320px"><input id="qUsers" placeholder="Cari nama / email / departemen…"></div>
+      <div class="card scroll"><table id="tblUsers"></table></div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="tHistory" class="tab hide">
+      <div class="sec"><h2>History peminjaman</h2><div class="rule"></div>
+        <button class="btn mini" id="btnCsv">Export CSV</button></div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="row">
+          <div><label for="fFrom">Dari</label><input id="fFrom" type="date"></div>
+          <div><label for="fTo">Sampai</label><input id="fTo" type="date"></div>
+          <div><label for="fStatus">Status</label>
+            <select id="fStatus"><option value="">Semua</option><option>PINJAM</option><option>KEMBALI</option></select></div>
+          <div><label for="fJenis">Jenis</label>
+            <select id="fJenis"><option value="">Semua</option><option>SENDIRI</option><option>DIWAKILKAN</option><option>ADMIN OVERRIDE</option></select></div>
+          <div><label for="fQ">Cari</label><input id="fQ" placeholder="Nama, kunci, loan ID…"></div>
+        </div>
+        <button class="btn primary mini" id="btnFilter" style="margin-top:12px">Terapkan filter</button>
+      </div>
+      <div class="card scroll"><table id="tblHist"></table></div>
+    </section>
+
+    <!-- AUDIT -->
+    <section id="tAudit" class="tab hide">
+      <div class="sec"><h2>Audit log</h2><div class="rule"></div>
+        <button class="btn mini" id="btnAuditCsv">Export CSV</button></div>
+      <p class="note">Jejak semua aksi sensitif: perubahan role, nonaktif/aktif user, reset password, hapus kunci, login gagal.</p>
+      <div class="field" style="max-width:320px"><input id="qAudit" placeholder="Cari aktor, aksi, target…"></div>
+      <div class="card scroll"><table id="tblAudit"></table></div>
+    </section>
+
+    <!-- AKUN -->
+    <section id="tAkun" class="tab hide">
+      <div class="sec"><h2>Ganti password</h2><div class="rule"></div></div>
+      <div class="card" style="max-width:400px">
+        <div class="field"><label for="pOld">Password lama</label><input id="pOld" type="password"></div>
+        <div class="field"><label for="pNew">Password baru</label><input id="pNew" type="password" placeholder="Minimal 6 karakter"></div>
+        <button class="btn primary" id="btnPass">Simpan password</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="bar" class="bar hide">
+    <span class="c" id="barCount">0 kunci dipilih</span>
+    <button class="btn primary" id="btnAct">Konfirmasi</button>
+  </div>
+</div>
+
+<script>
+/* ═══════ RPC — password tidak pernah ada di sisi client ═══════ */
+let TOKEN = sessionStorage.getItem('km_token') || '';
+let ME = null;
+
+/**
+ * Semua request lewat /api/rpc — serverless function di Vercel.
+ * URL Apps Script dan shared secret TIDAK PERNAH sampai ke browser;
+ * keduanya hanya ada di environment variable Vercel (server-side).
+ */
+async function call(action, data) {
+  let r;
+  try {
+    const resp = await fetch('/api/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, token: TOKEN, data: data || {} })
+    });
+    r = await resp.json();
+  } catch (e) {
+    throw new Error('Koneksi gagal. Periksa jaringan Anda.');
+  }
+  if (r && r.ok) return r.data;
+
+  const msg = (r && r.error) || 'Terjadi kesalahan.';
+  if (msg === 'SESSION_EXPIRED') { signOut(true); throw new Error('Sesi berakhir. Masuk lagi.'); }
+  if (msg.indexOf('dinonaktifkan') > -1) { signOut(true); showLoginErr(msg); }
+  throw new Error(msg);
+}
+
+let toastT;
+function toast(msg, isErr) {
+  clearTimeout(toastT);
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const el = document.createElement('div');
+  el.className = 'toast' + (isErr ? ' err' : '');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  toastT = setTimeout(() => el.remove(), 4200);
+}
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+function showLoginErr(m) { const e = $('lErr'); e.textContent = m; e.classList.remove('hide'); }
+
+/* ═══════ LOGIN ═══════ */
+$('btnLogin').onclick = doLogin;
+$('lEmail').onkeydown = e => { if (e.key === 'Enter') $('lPass').focus(); };
+$('lPass').onkeydown  = e => { if (e.key === 'Enter') doLogin(); };
+
+async function doLogin() {
+  const b = $('btnLogin');
+  $('lErr').classList.add('hide');
+  b.disabled = true; b.textContent = 'Memeriksa…';
+  try {
+    const r = await call('login', { email: $('lEmail').value, password: $('lPass').value });
+    TOKEN = r.token;
+    sessionStorage.setItem('km_token', TOKEN);
+    $('lPass').value = '';                 // buang password dari DOM
+    boot(r.user);
+  } catch (e) { showLoginErr(e.message); }
+  finally { b.disabled = false; b.textContent = 'Masuk'; }
+}
+
+function signOut(silent) {
+  if (TOKEN && !silent) call('logout', {}).catch(() => {});
+  TOKEN = ''; ME = null;
+  sessionStorage.removeItem('km_token');
+  $('vApp').classList.add('hide');
+  $('vLogin').classList.remove('hide');
+}
+$('btnLogout').onclick = () => signOut();
+
+/* ═══════ TABS per role ═══════ */
+const TABS = {
+  STAFF:      [['tPinjam','Pinjam'],['tKembali','Kembalikan'],['tRiwayat','Riwayat'],['tAkun','Akun']],
+  ADMIN:      [['tDash','Dashboard'],['tKeys','Kunci'],['tHistory','History'],
+               ['tPinjam','Pinjam'],['tKembali','Kembalikan'],['tAkun','Akun']],
+  SUPERADMIN: [['tDash','Dashboard'],['tKeys','Kunci'],['tUsers','User'],['tHistory','History'],
+               ['tAudit','Audit'],['tPinjam','Pinjam'],['tKembali','Kembalikan'],['tAkun','Akun']]
+};
+let CUR = '';
+
+function buildTabs(role) {
+  const list = TABS[role] || TABS.STAFF;
+  const nav = $('tabs'); nav.innerHTML = '';
+  list.forEach(([id, label]) => {
+    const b = document.createElement('button');
+    b.textContent = label; b.dataset.tab = id;
+    b.onclick = () => show(id);
+    nav.appendChild(b);
+  });
+  show(list[0][0]);
+}
+
+function show(id) {
+  CUR = id;
+  document.querySelectorAll('.tab').forEach(s => s.classList.toggle('hide', s.id !== id));
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === id));
+  PICK.clear(); syncBar();
+  window.scrollTo(0, 0);
+  ({ tPinjam: loadPinjam, tKembali: loadKembali, tRiwayat: loadMine, tDash: loadDash,
+     tKeys: loadKeys, tUsers: loadUsers, tHistory: loadHist, tAudit: loadAudit }[id] || (() => {}))();
+}
+
+/* ═══════ BOOT ═══════ */
+function boot(user) {
+  ME = user;
+  $('uName').textContent = user.name;
+  const rl = user.role === 'SUPERADMIN' ? 'SUPER ADMIN' : user.role === 'ADMIN' ? 'ADMIN' : '';
+  $('uDept').textContent = user.dept + (rl ? ' · ' + rl : '');
+  $('vLogin').classList.add('hide');
+  $('vApp').classList.remove('hide');
+  buildTabs(user.role);
+}
+(async function restore() {
+  if (!TOKEN) return;
+  try { boot(await call('me', {})); } catch (e) { signOut(true); }
+})();
+
+/* ═══════ PILIH KUNCI ═══════ */
+const PICK = new Set();
+const PICKMETA = new Map();          // id -> {nama, milikSaya, pemegang}
+let KEYS_AVAIL = [], KEYS_OUT = [];
+
+function syncBar() {
+  const bar = $('bar'), n = PICK.size;
+  const active = (CUR === 'tPinjam' || CUR === 'tKembali');
+  bar.classList.toggle('hide', !active || n === 0);
+  if (!active || !n) return;
+
+  if (CUR === 'tPinjam') {
+    $('barCount').textContent = n + ' kunci dipilih';
+    $('btnAct').textContent = 'Pinjam sekarang';
+  } else {
+    const lain = [...PICK].filter(id => PICKMETA.get(id) && !PICKMETA.get(id).milikSaya).length;
+    $('barCount').innerHTML = n + ' kunci dipilih' +
+      (lain ? ' · <span style="color:var(--blue)">' + lain + ' milik rekan</span>' : '');
+    $('btnAct').textContent = 'Kembalikan';
+  }
+  $('btnAct').disabled = false;
+}
+
+function tagCard(k, sub, lain) {
+  return `<button class="tag${lain ? ' lain' : ''}" data-id="${esc(k.id)}" aria-pressed="false">
+    <div class="n">${esc(k.nama)}</div>
+    <div class="k">NO. ${esc(k.kode || '—')}</div>
+    ${sub ? `<div class="hold">${sub}</div>` : ''}
+  </button>`;
+}
+
+function wireTags(grid, max) {
+  grid.querySelectorAll('.tag').forEach(el => {
+    el.onclick = () => {
+      const id = el.dataset.id;
+      if (PICK.has(id)) { PICK.delete(id); el.setAttribute('aria-pressed', 'false'); }
+      else {
+        if (max && PICK.size >= max) return toast('Maksimal ' + max + ' kunci sekali transaksi.', true);
+        PICK.add(id); el.setAttribute('aria-pressed', 'true');
+      }
+      syncBar();
+    };
+  });
+}
+
+/* --- Pinjam --- */
+async function loadPinjam() {
+  const g = $('gridPinjam'); g.innerHTML = '<div class="empty">Memuat…</div>';
+  try { KEYS_AVAIL = await call('keys.available', {}); renderPinjam(); }
+  catch (e) { g.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+function renderPinjam() {
+  const q = $('qPinjam').value.trim().toUpperCase();
+  const list = KEYS_AVAIL.filter(k => !q || k.nama.includes(q) || String(k.kode).includes(q));
+  const g = $('gridPinjam');
+  g.innerHTML = list.length ? list.map(k => tagCard(k)).join('')
+    : '<div class="empty">Tidak ada kunci tersedia yang cocok.</div>';
+  list.forEach(k => { if (PICK.has(k.id)) g.querySelector(`[data-id="${k.id}"]`)?.setAttribute('aria-pressed','true'); });
+  wireTags(g, 5);
+}
+$('qPinjam').oninput = renderPinjam;
+
+/* --- Kembalikan (sendiri + rekan) --- */
+async function loadKembali() {
+  $('gridMine').innerHTML = '<div class="empty">Memuat…</div>';
+  $('gridLain').innerHTML = '';
+  try {
+    KEYS_OUT = await call('keys.outstanding', {});
+    PICKMETA.clear();
+    KEYS_OUT.forEach(k => PICKMETA.set(k.id, { nama: k.nama, milikSaya: k.milikSaya, pemegang: k.pemegang }));
+    renderKembali();
+  } catch (e) { $('gridMine').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+function renderKembali() {
+  const q = $('qKembali').value.trim().toUpperCase();
+  const match = k => !q || k.nama.includes(q) || String(k.kode).includes(q) || k.pemegang.toUpperCase().includes(q);
+
+  const mine = KEYS_OUT.filter(k => k.milikSaya && match(k));
+  const lain = KEYS_OUT.filter(k => !k.milikSaya && match(k));
+
+  $('gridMine').innerHTML = mine.length
+    ? mine.map(k => tagCard(k, `Sejak ${esc(k.sejak)} · ${k.jam} jam`)).join('')
+    : '<div class="empty">Tidak ada kunci atas nama Anda.</div>';
+
+  $('gridLain').innerHTML = lain.length
+    ? lain.map(k => tagCard(k, `<b>${esc(k.pemegang)}</b><br>${esc(k.dept || '')} · ${k.jam} jam`, true)).join('')
+    : '<div class="empty">Tidak ada kunci rekan yang beredar.</div>';
+
+  [...mine, ...lain].forEach(k => {
+    if (PICK.has(k.id)) document.querySelector(`.tag[data-id="${k.id}"]`)?.setAttribute('aria-pressed','true');
+  });
+  wireTags($('gridMine'), 10);
+  wireTags($('gridLain'), 10);
+}
+$('qKembali').oninput = renderKembali;
+
+/* --- Konfirmasi --- */
+$('btnAct').onclick = async () => {
+  const b = $('btnAct'), pinjam = CUR === 'tPinjam';
+  let catatan = '';
+
+  if (!pinjam) {
+    const lain = [...PICK].map(id => PICKMETA.get(id)).filter(m => m && !m.milikSaya);
+    if (lain.length) {
+      const pemilik = [...new Set(lain.map(m => m.pemegang))].join(', ');
+      const c = prompt(
+        'Anda mengembalikan ' + lain.length + ' kunci milik: ' + pemilik + '.\n\n' +
+        'Ini akan tercatat di log sebagai serah-terima atas nama Anda.\n' +
+        'Tulis keterangan (opsional), mis. "Serah terima shift malam":');
+      if (c === null) return;   // batal
+      catatan = c;
+    }
+  }
+
+  b.disabled = true; b.textContent = 'Memproses…';
+  try {
+    const r = await call(pinjam ? 'loans.borrow' : 'loans.return',
+      pinjam ? { keyIds: [...PICK] } : { keyIds: [...PICK], catatan: catatan });
+    toast(pinjam
+      ? 'Dipinjam: ' + r.keys.join(', ')
+      : 'Dikembalikan: ' + r.keys.join(', ') + (r.diwakilkan ? ' — ' + r.diwakilkan + ' kunci milik rekan, tercatat di log.' : ''));
+    PICK.clear();
+    pinjam ? loadPinjam() : loadKembali();
+  } catch (e) { toast(e.message, true); }
+  finally { syncBar(); b.disabled = false; }
+};
+
+/* ═══════ RIWAYAT / HISTORY ═══════ */
+function statPill(s) {
+  return `<span class="pill ${s.indexOf('KEMBALI') === 0 ? 'kembali' : 'pinjam'}">${esc(s)}</span>`;
+}
+function jenisPill(j) {
+  if (j === 'SENDIRI') return '<span style="color:var(--muted);font-size:11px">Sendiri</span>';
+  return `<span class="pill wakil">${esc(j)}</span>`;
+}
+function histTable(rows, withWho) {
+  return `<thead><tr><th>Waktu</th>${withWho ? '<th>Peminjam</th><th>Dept</th>' : ''}
+    <th>Status</th><th>Kunci</th><th>Diproses oleh</th><th>Jenis</th><th>Catatan</th><th>Loan ID</th></tr></thead><tbody>` +
+    rows.map(r => `<tr>
+      <td class="mono" style="white-space:nowrap;font-size:12px">${esc(r.waktu)}</td>
+      ${withWho ? `<td>${esc(r.nama)}</td><td style="font-size:12px;color:var(--muted)">${esc(r.dept)}</td>` : ''}
+      <td>${statPill(r.status)}</td>
+      <td>${r.keys.map(esc).join('<br>')}</td>
+      <td style="font-size:12px">${esc(r.by)}</td>
+      <td>${jenisPill(r.jenis)}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:220px">${esc(r.catatan)}</td>
+      <td class="mono" style="font-size:11px;color:var(--muted)">${esc(r.loanId)}</td>
+    </tr>`).join('') + '</tbody>';
+}
+
+async function loadMine() {
+  const t = $('tblMine'); t.innerHTML = '<tr><td class="empty">Memuat…</td></tr>';
+  try {
+    const rows = await call('loans.myHistory', {});
+    t.innerHTML = rows.length ? histTable(rows, false) : '<tr><td class="empty">Belum ada riwayat.</td></tr>';
+  } catch (e) { t.innerHTML = `<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+
+let HIST = [];
+async function loadHist() {
+  const t = $('tblHist'); t.innerHTML = '<tr><td class="empty">Memuat…</td></tr>';
+  try {
+    HIST = await call('history', {
+      from: $('fFrom').value, to: $('fTo').value, status: $('fStatus').value,
+      jenis: $('fJenis').value, q: $('fQ').value.trim()
+    });
+    t.innerHTML = HIST.length ? histTable(HIST, true) : '<tr><td class="empty">Tidak ada data untuk filter ini.</td></tr>';
+  } catch (e) { t.innerHTML = `<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+$('btnFilter').onclick = loadHist;
+
+function downloadCsv(name, head, lines) {
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const csv = [head.join(',')].concat(lines.map(r => r.map(q).join(','))).join('\n');
+  const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+$('btnCsv').onclick = () => {
+  if (!HIST.length) return toast('Tidak ada data untuk diexport.', true);
+  downloadCsv('history-kunci',
+    ['Waktu','Peminjam','Departemen','Status','Kunci','Diproses Oleh','Jenis','Catatan','Loan ID'],
+    HIST.map(r => [r.waktu, r.nama, r.dept, r.status, r.keys.join(' | '), r.by, r.jenis, r.catatan, r.loanId]));
+};
+
+/* ═══════ DASHBOARD ═══════ */
+async function loadDash() {
+  const t = $('tblOut'); t.innerHTML = '<tr><td class="empty">Memuat…</td></tr>';
+  try {
+    const d = await call('dashboard', {});
+    $('sTotal').textContent = d.total;
+    $('sOut').textContent = d.dipinjam;
+    $('sIn').textContent = d.tersedia;
+    $('sUserOn').textContent = d.userAktif;
+    $('sUserOff').textContent = d.userNonaktif;
+
+    t.innerHTML = d.outstanding.length
+      ? `<thead><tr><th>Kunci</th><th>Kode</th><th>Pemegang</th><th>Dept</th><th>Sejak</th><th>Durasi</th></tr></thead><tbody>` +
+        d.outstanding.map(k => `<tr>
+          <td>${esc(k.nama)}</td>
+          <td class="mono" style="color:var(--brass)">${esc(k.kode)}</td>
+          <td>${esc(k.pemegang || '—')}</td>
+          <td style="font-size:12px;color:var(--muted)">${esc(k.dept)}</td>
+          <td class="mono" style="font-size:12px">${esc(k.sejak)}</td>
+          <td class="mono" style="color:${k.jam >= 12 ? 'var(--red)' : 'var(--muted)'}">${k.jam} jam</td>
+        </tr>`).join('') + '</tbody>'
+      : '<tr><td class="empty">Semua kunci sudah kembali.</td></tr>';
+  } catch (e) { t.innerHTML = `<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+
+/* ═══════ KUNCI ═══════ */
+let ALL_KEYS = [];
+async function loadKeys() {
+  const t = $('tblKeys'); t.innerHTML = '<tr><td class="empty">Memuat…</td></tr>';
+  try { ALL_KEYS = await call('keys.list', {}); renderKeys(); }
+  catch (e) { t.innerHTML = `<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+function renderKeys() {
+  const q = $('qKeys').value.trim().toUpperCase();
+  const list = ALL_KEYS.filter(k => !q || k.nama.includes(q) || String(k.kode).includes(q));
+  const t = $('tblKeys');
+  t.innerHTML = `<thead><tr><th>Nama kunci</th><th>Kode</th><th>Status</th><th>Pemegang</th><th></th></tr></thead><tbody>` +
+    (list.length ? list.map(k => `<tr>
+      <td>${esc(k.nama)}</td>
+      <td class="mono" style="color:var(--brass)">${esc(k.kode)}</td>
+      <td>${k.status === 'DIPINJAM' ? '<span class="pill pinjam">Dipinjam</span>' : '<span class="pill kembali">Tersedia</span>'}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(k.pemegang || '—')}</td>
+      <td style="white-space:nowrap">
+        <button class="btn mini" data-edit="${esc(k.id)}">Edit</button>
+        <button class="btn mini danger" data-del="${esc(k.id)}">Hapus</button>
+      </td></tr>`).join('')
+      : '<tr><td class="empty" colspan="5">Tidak ada kunci yang cocok.</td></tr>') + '</tbody>';
+
+  t.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => {
+    const k = ALL_KEYS.find(x => x.id === b.dataset.edit);
+    const nama = prompt('Nama kunci:', k.nama); if (nama === null) return;
+    const kode = prompt('Kode kunci:', k.kode); if (kode === null) return;
+    call('keys.update', { id: k.id, nama, kode })
+      .then(() => { toast('Kunci diperbarui.'); loadKeys(); }).catch(e => toast(e.message, true));
+  });
+  t.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const k = ALL_KEYS.find(x => x.id === b.dataset.del);
+    if (!confirm('Hapus kunci "' + k.nama + '"? Tercatat di audit log.')) return;
+    call('keys.delete', { id: k.id })
+      .then(() => { toast('Kunci dihapus.'); loadKeys(); }).catch(e => toast(e.message, true));
+  });
+}
+$('qKeys').oninput = renderKeys;
+$('btnAddKey').onclick = () => {
+  const nama = prompt('Nama kunci baru:'); if (!nama) return;
+  const kode = prompt('Kode kunci:') || '';
+  call('keys.create', { nama, kode })
+    .then(() => { toast('Kunci ditambahkan.'); loadKeys(); }).catch(e => toast(e.message, true));
+};
+
+/* ═══════ USER ═══════ */
+let ALL_USERS = [];
+function rolePill(r) {
+  if (r === 'SUPERADMIN') return '<span class="pill super">Super admin</span>';
+  if (r === 'ADMIN')      return '<span class="pill admin">Admin</span>';
+  return '<span class="pill staff">Staff</span>';
+}
+function askRole(current) {
+  const v = prompt('Level akses — ketik 1, 2, atau 3:\n\n' +
+    '1 = STAFF (pinjam & kembalikan)\n' +
+    '2 = ADMIN (+ dashboard, kelola kunci, history)\n' +
+    '3 = SUPER ADMIN (+ kelola user & audit)\n\n' +
+    'Saat ini: ' + current,
+    current === 'SUPERADMIN' ? '3' : current === 'ADMIN' ? '2' : '1');
+  if (v === null) return null;
+  return { '1': 'STAFF', '2': 'ADMIN', '3': 'SUPERADMIN' }[String(v).trim()] || null;
+}
+
+async function loadUsers() {
+  const t = $('tblUsers'); t.innerHTML = '<tr><td class="empty">Memuat…</td></tr>';
+  try { ALL_USERS = await call('users.list', {}); renderUsers(); }
+  catch (e) { t.innerHTML = `<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+function renderUsers() {
+  const q = $('qUsers').value.trim().toUpperCase();
+  const list = ALL_USERS.filter(u => !q || u.nama.includes(q) || u.email.toUpperCase().includes(q) || u.dept.includes(q));
+  const t = $('tblUsers');
+  t.innerHTML = `<thead><tr><th>Nama</th><th>Email</th><th>Dept</th><th>Level akses</th>
+      <th>Status</th><th>Pegang</th><th>Password</th><th></th></tr></thead><tbody>` +
+    (list.length ? list.map(u => `<tr class="${u.aktif ? '' : 'off'}">
+      <td>${esc(u.nama)}${u.email === ME.email ? ' <span style="color:var(--muted);font-size:11px">(Anda)</span>' : ''}</td>
+      <td style="font-size:12px">${esc(u.email)}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(u.dept)}</td>
+      <td>${rolePill(u.role)}</td>
+      <td>${u.aktif ? '<span class="pill on">Aktif</span>'
+                    : `<span class="pill off">Nonaktif</span>${u.offDate ? `<div class="mono" style="font-size:10px;color:var(--muted);margin-top:3px">${esc(u.offDate)}</div>` : ''}`}</td>
+      <td class="mono" style="color:${u.pegang ? 'var(--brass)' : 'var(--muted)'}">${u.pegang || '—'}</td>
+      <td class="mono" style="color:var(--muted)">••••••••</td>
+      <td style="white-space:nowrap">
+        <button class="btn mini" data-eu="${esc(u.email)}">Edit</button>
+        <button class="btn mini" data-ru="${esc(u.email)}">Reset PW</button>
+        ${u.aktif ? `<button class="btn mini danger" data-off="${esc(u.email)}">Nonaktifkan</button>`
+                  : `<button class="btn mini" data-on="${esc(u.email)}">Aktifkan</button>
+                     <button class="btn mini danger" data-du="${esc(u.email)}">Hapus</button>`}
+      </td></tr>`).join('')
+      : '<tr><td class="empty" colspan="8">Tidak ada user yang cocok.</td></tr>') + '</tbody>';
+
+  t.querySelectorAll('[data-eu]').forEach(b => b.onclick = () => {
+    const u = ALL_USERS.find(x => x.email === b.dataset.eu);
+    const nama = prompt('Nama:', u.nama); if (nama === null) return;
+    const dept = prompt('Departemen:', u.dept); if (dept === null) return;
+    const role = askRole(u.role); if (!role) return;
+    call('users.update', { email: u.email, nama, dept, role })
+      .then(() => { toast('User diperbarui. Perubahan tercatat di audit log.'); loadUsers(); })
+      .catch(e => toast(e.message, true));
+  });
+
+  t.querySelectorAll('[data-ru]').forEach(b => b.onclick = () => {
+    const pw = prompt('Password baru untuk ' + b.dataset.ru + ' (min. 6 karakter):');
+    if (!pw) return;
+    call('users.resetPassword', { email: b.dataset.ru, newPassword: pw })
+      .then(() => toast('Password direset. Sampaikan ke user secara pribadi.'))
+      .catch(e => toast(e.message, true));
+  });
+
+  t.querySelectorAll('[data-off]').forEach(b => b.onclick = () => {
+    const u = ALL_USERS.find(x => x.email === b.dataset.off);
+    if (u.pegang) return toast('Masih memegang ' + u.pegang + ' kunci. Kembalikan dulu lewat tab Kembalikan → Kunci rekan.', true);
+    const alasan = prompt('Nonaktifkan ' + u.nama + '.\n\nAkun langsung tidak bisa login, tapi seluruh riwayatnya tetap tersimpan.\n\nAlasan (mis. "Resign 31 Juli 2026"):');
+    if (alasan === null) return;
+    call('users.setStatus', { email: u.email, aktif: false, alasan })
+      .then(() => { toast(u.nama + ' dinonaktifkan.'); loadUsers(); })
+      .catch(e => toast(e.message, true));
+  });
+
+  t.querySelectorAll('[data-on]').forEach(b => b.onclick = () => {
+    const u = ALL_USERS.find(x => x.email === b.dataset.on);
+    const alasan = prompt('Aktifkan kembali ' + u.nama + '.\n\nAlasan (opsional):') ;
+    if (alasan === null) return;
+    call('users.setStatus', { email: u.email, aktif: true, alasan })
+      .then(() => { toast(u.nama + ' diaktifkan kembali.'); loadUsers(); })
+      .catch(e => toast(e.message, true));
+  });
+
+  t.querySelectorAll('[data-du]').forEach(b => b.onclick = () => {
+    if (!confirm('Hapus PERMANEN ' + b.dataset.du + '?\n\nUntuk resign, cukup nonaktifkan — riwayatnya tetap terlacak. Hapus permanen hanya untuk data salah input.')) return;
+    call('users.delete', { email: b.dataset.du })
+      .then(() => { toast('User dihapus permanen.'); loadUsers(); })
+      .catch(e => toast(e.message, true));
+  });
+}
+$('qUsers').oninput = renderUsers;
+$('btnAddUser').onclick = () => {
+  const nama = prompt('Nama karyawan:'); if (!nama) return;
+  const email = prompt('Email:'); if (!email) return;
+  const dept = prompt('Departemen:') || '';
+  const password = prompt('Password awal (min. 6 karakter):'); if (!password) return;
+  const role = askRole('STAFF'); if (!role) return;
+  call('users.create', { nama, email, dept, password, role })
+    .then(() => { toast('User ditambahkan.'); loadUsers(); }).catch(e => toast(e.message, true));
+};
+
+/* ═══════ AUDIT ═══════ */
+let AUDIT = [];
+async function loadAudit() {
+  const t = $('tblAudit'); t.innerHTML = '<tr><td class="empty">Memuat…</td></tr>';
+  try { AUDIT = await call('audit.list', { q: $('qAudit').value.trim() }); renderAudit(); }
+  catch (e) { t.innerHTML = `<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+function renderAudit() {
+  const t = $('tblAudit');
+  t.innerHTML = AUDIT.length
+    ? `<thead><tr><th>Waktu</th><th>Aktor</th><th>Aksi</th><th>Target</th><th>Detail</th></tr></thead><tbody>` +
+      AUDIT.map(r => `<tr>
+        <td class="mono" style="white-space:nowrap;font-size:12px">${esc(r.waktu)}</td>
+        <td><div style="font-size:13px">${esc(r.aktor)}</div>
+            <div style="font-size:11px;color:var(--muted)">${esc(r.email)}</div></td>
+        <td><span class="pill ${r.aksi.indexOf('GAGAL') > -1 || r.aksi.indexOf('DITOLAK') > -1 || r.aksi.indexOf('DIHAPUS') > -1 || r.aksi.indexOf('NONAKTIF') > -1 ? 'admin' : 'wakil'}">${esc(r.aksi)}</span></td>
+        <td style="font-size:12px">${esc(r.target)}</td>
+        <td style="font-size:12px;color:var(--muted);max-width:300px">${esc(r.detail)}</td>
+      </tr>`).join('') + '</tbody>'
+    : '<tr><td class="empty">Belum ada catatan audit.</td></tr>';
+}
+let auditT;
+$('qAudit').oninput = () => { clearTimeout(auditT); auditT = setTimeout(loadAudit, 350); };
+$('btnAuditCsv').onclick = () => {
+  if (!AUDIT.length) return toast('Tidak ada data untuk diexport.', true);
+  downloadCsv('audit-log', ['Waktu','Aktor','Email','Role','Aksi','Target','Detail'],
+    AUDIT.map(r => [r.waktu, r.aktor, r.email, r.role, r.aksi, r.target, r.detail]));
+};
+
+/* ═══════ GANTI PASSWORD ═══════ */
+$('btnPass').onclick = async () => {
+  const b = $('btnPass');
+  b.disabled = true; b.textContent = 'Menyimpan…';
+  try {
+    await call('changePassword', { oldPassword: $('pOld').value, newPassword: $('pNew').value });
+    $('pOld').value = ''; $('pNew').value = '';
+    toast('Password berhasil diganti.');
+  } catch (e) { toast(e.message, true); }
+  finally { b.disabled = false; b.textContent = 'Simpan password'; }
+};
+</script>
+</body>
+</html>
