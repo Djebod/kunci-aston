@@ -383,15 +383,30 @@ function buildTabs(role) {
   show(list[0][0]);
 }
 
-function show(id) {
+const TAB_FRESH_MS = 6000;      // data dianggap masih segar 6 detik
+const _tabLoadedAt = {};        // id -> timestamp terakhir load
+
+function show(id, forceReload) {
   CUR = id;
   document.querySelectorAll('.tab').forEach(s => s.classList.toggle('hide', s.id !== id));
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === id));
   PICK.clear(); syncBar();
   window.scrollTo(0, 0);
-  ({ tPinjam: loadPinjam, tKembali: loadKembali, tRiwayat: loadMine, tDash: loadDash,
-     tKeys: loadKeys, tUsers: loadUsers, tHistory: loadHist, tAudit: loadAudit }[id] || (() => {}))();
+
+  const loader = { tPinjam: loadPinjam, tKembali: loadKembali, tRiwayat: loadMine, tDash: loadDash,
+                   tKeys: loadKeys, tUsers: loadUsers, tHistory: loadHist, tAudit: loadAudit }[id];
+  if (!loader) return;
+
+  // Kalau tab baru dibuka beberapa detik lalu dan tidak dipaksa, jangan tarik ulang.
+  const fresh = _tabLoadedAt[id] && (Date.now() - _tabLoadedAt[id] < TAB_FRESH_MS);
+  if (fresh && !forceReload) return;
+
+  _tabLoadedAt[id] = Date.now();
+  loader();
 }
+
+/** Panggil setelah aksi (pinjam/kembali/CRUD) agar tab terkait dimuat ulang. */
+function invalidateTabs() { for (const k in _tabLoadedAt) delete _tabLoadedAt[k]; }
 
 /* ═══════ BOOT ═══════ */
 function boot(user) {
@@ -530,6 +545,7 @@ $('btnAct').onclick = async () => {
       ? 'Dipinjam: ' + r.keys.join(', ')
       : 'Dikembalikan: ' + r.keys.join(', ') + (r.diwakilkan ? ' — ' + r.diwakilkan + ' kunci milik rekan, tercatat di log.' : ''));
     PICK.clear();
+    invalidateTabs();
     pinjam ? loadPinjam() : loadKembali();
   } catch (e) { toast(e.message, true); }
   finally { syncBar(); b.disabled = false; }
@@ -647,13 +663,13 @@ function renderKeys() {
     const nama = prompt('Nama kunci:', k.nama); if (nama === null) return;
     const kode = prompt('Kode kunci:', k.kode); if (kode === null) return;
     call('keys.update', { id: k.id, nama, kode })
-      .then(() => { toast('Kunci diperbarui.'); loadKeys(); }).catch(e => toast(e.message, true));
+      .then(() => { toast('Kunci diperbarui.'); invalidateTabs(); loadKeys(); }).catch(e => toast(e.message, true));
   });
   t.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     const k = ALL_KEYS.find(x => x.id === b.dataset.del);
     if (!confirm('Hapus kunci "' + k.nama + '"? Tercatat di audit log.')) return;
     call('keys.delete', { id: k.id })
-      .then(() => { toast('Kunci dihapus.'); loadKeys(); }).catch(e => toast(e.message, true));
+      .then(() => { toast('Kunci dihapus.'); invalidateTabs(); loadKeys(); }).catch(e => toast(e.message, true));
   });
 }
 $('qKeys').oninput = renderKeys;
@@ -661,7 +677,7 @@ $('btnAddKey').onclick = () => {
   const nama = prompt('Nama kunci baru:'); if (!nama) return;
   const kode = prompt('Kode kunci:') || '';
   call('keys.create', { nama, kode })
-    .then(() => { toast('Kunci ditambahkan.'); loadKeys(); }).catch(e => toast(e.message, true));
+    .then(() => { toast('Kunci ditambahkan.'); invalidateTabs(); loadKeys(); }).catch(e => toast(e.message, true));
 };
 
 /* ═══════ USER ═══════ */
@@ -717,7 +733,7 @@ function renderUsers() {
     const dept = prompt('Departemen:', u.dept); if (dept === null) return;
     const role = askRole(u.role); if (!role) return;
     call('users.update', { email: u.email, nama, dept, role })
-      .then(() => { toast('User diperbarui. Perubahan tercatat di audit log.'); loadUsers(); })
+      .then(() => { toast('User diperbarui. Perubahan tercatat di audit log.'); invalidateTabs(); loadUsers(); })
       .catch(e => toast(e.message, true));
   });
 
@@ -735,7 +751,7 @@ function renderUsers() {
     const alasan = prompt('Nonaktifkan ' + u.nama + '.\n\nAkun langsung tidak bisa login, tapi seluruh riwayatnya tetap tersimpan.\n\nAlasan (mis. "Resign 31 Juli 2026"):');
     if (alasan === null) return;
     call('users.setStatus', { email: u.email, aktif: false, alasan })
-      .then(() => { toast(u.nama + ' dinonaktifkan.'); loadUsers(); })
+      .then(() => { toast(u.nama + ' dinonaktifkan.'); invalidateTabs(); loadUsers(); })
       .catch(e => toast(e.message, true));
   });
 
@@ -744,14 +760,14 @@ function renderUsers() {
     const alasan = prompt('Aktifkan kembali ' + u.nama + '.\n\nAlasan (opsional):') ;
     if (alasan === null) return;
     call('users.setStatus', { email: u.email, aktif: true, alasan })
-      .then(() => { toast(u.nama + ' diaktifkan kembali.'); loadUsers(); })
+      .then(() => { toast(u.nama + ' diaktifkan kembali.'); invalidateTabs(); loadUsers(); })
       .catch(e => toast(e.message, true));
   });
 
   t.querySelectorAll('[data-du]').forEach(b => b.onclick = () => {
     if (!confirm('Hapus PERMANEN ' + b.dataset.du + '?\n\nUntuk resign, cukup nonaktifkan — riwayatnya tetap terlacak. Hapus permanen hanya untuk data salah input.')) return;
     call('users.delete', { email: b.dataset.du })
-      .then(() => { toast('User dihapus permanen.'); loadUsers(); })
+      .then(() => { toast('User dihapus permanen.'); invalidateTabs(); loadUsers(); })
       .catch(e => toast(e.message, true));
   });
 }
@@ -763,7 +779,7 @@ $('btnAddUser').onclick = () => {
   const password = prompt('Password awal (min. 6 karakter):'); if (!password) return;
   const role = askRole('STAFF'); if (!role) return;
   call('users.create', { nama, email, dept, password, role })
-    .then(() => { toast('User ditambahkan.'); loadUsers(); }).catch(e => toast(e.message, true));
+    .then(() => { toast('User ditambahkan.'); invalidateTabs(); loadUsers(); }).catch(e => toast(e.message, true));
 };
 
 /* ═══════ AUDIT ═══════ */
