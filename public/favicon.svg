@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#00205B"/>
+  <g fill="none" stroke="#C89B3C" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- kepala kunci -->
+    <circle cx="24" cy="24" r="10.5"/>
+    <!-- lubang kepala -->
+  </g>
+  <circle cx="24" cy="24" r="3.6" fill="#00205B" stroke="#C89B3C" stroke-width="2"/>
+  <g fill="none" stroke="#C89B3C" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- batang kunci -->
+    <line x1="31.4" y1="31.4" x2="48" y2="48"/>
+    <!-- gigi kunci -->
+    <line x1="41" y1="41" x2="47" y2="35"/>
+    <line x1="46" y1="46" x2="52" y2="40"/>
+  </g>
+</svg>
