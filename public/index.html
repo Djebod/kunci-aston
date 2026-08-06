@@ -10,6 +10,9 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -294,35 +297,30 @@
 </div>
 
 <script>
-/* ═══════ RPC — password tidak pernah ada di sisi client ═══════ */
-let TOKEN = sessionStorage.getItem('km_token') || '';
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE DATA LAYER
+   Password ditangani Firebase Auth — tidak pernah ada di kode ini.
+   Keamanan role & akses ditegakkan Firestore Security Rules (server).
+   ═══════════════════════════════════════════════════════════ */
+
+// >>> GANTI dengan config project Firebase Anda (Project settings → Your apps) <<<
+const firebaseConfig = {
+  apiKey: "AIzaSyCtchsoXQdSr-KU8RsG0vHvG678zFe249k",
+  authDomain: "aston-cirebon.firebaseapp.com",
+  projectId: "aston-cirebon",
+  storageBucket: "aston-cirebon.firebasestorage.app",
+  messagingSenderId: "791684466111",
+  appId: "1:791684466111:web:08e3af52ca7b14a5b44d0a"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
 let ME = null;
 
-/**
- * Semua request lewat /api/rpc — serverless function di Vercel.
- * URL Apps Script dan shared secret TIDAK PERNAH sampai ke browser;
- * keduanya hanya ada di environment variable Vercel (server-side).
- */
-async function call(action, data) {
-  let r;
-  try {
-    const resp = await fetch('/api/rpc', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, token: TOKEN, data: data || {} })
-    });
-    r = await resp.json();
-  } catch (e) {
-    throw new Error('Koneksi gagal. Periksa jaringan Anda.');
-  }
-  if (r && r.ok) return r.data;
-
-  const msg = (r && r.error) || 'Terjadi kesalahan.';
-  if (msg === 'SESSION_EXPIRED') { signOut(true); throw new Error('Sesi berakhir. Masuk lagi.'); }
-  if (msg.indexOf('dinonaktifkan') > -1) { signOut(true); showLoginErr(msg); }
-  throw new Error(msg);
-}
-
+/* ---- util UI (dipakai seluruh aplikasi) ---- */
 let toastT;
 function toast(msg, isErr) {
   clearTimeout(toastT);
@@ -337,33 +335,358 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;
 const $ = id => document.getElementById(id);
 function showLoginErr(m) { const e = $('lErr'); e.textContent = m; e.classList.remove('hide'); }
 
+/* ---- helper ---- */
+const ROLE = { SUPER: 'SUPERADMIN', ADMIN: 'ADMIN', STAFF: 'STAFF' };
+const isAdmin = () => ME && (ME.role === ROLE.ADMIN || ME.role === ROLE.SUPER);
+const isSuper = () => ME && ME.role === ROLE.SUPER;
+function normRole(v){ v=String(v||'').toUpperCase().replace(/[\s_-]/g,''); return v==='SUPERADMIN'?ROLE.SUPER:(v==='ADMIN'?ROLE.ADMIN:ROLE.STAFF); }
+
+function tsFmt(t) {
+  if (!t) return '';
+  const d = t.toDate ? t.toDate() : new Date(t);
+  const p = n => ('0'+n).slice(-2);
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function jamSejak(t){ if(!t) return 0; const d=t.toDate?t.toDate():new Date(t); return Math.max(0,Math.round((Date.now()-d.getTime())/36e5)); }
+function keyDoc(d){ const k=d.data(); return {
+  id:d.id, nama:String(k.nama||''), kode:String(k.kode==null?'':k.kode),
+  status:String(k.status||'TERSEDIA').toUpperCase(), pemegang:String(k.pemegang||''),
+  email:String(k.email||''), dept:String(k.dept||''), sejak:tsFmt(k.sejak), jam:jamSejak(k.sejak) }; }
+
+async function writeAudit(aksi, target, detail) {
+  try {
+    await db.collection('audit').add({
+      ts: firebase.firestore.FieldValue.serverTimestamp(),
+      aktor: ME ? ME.name : '(sistem)', email: ME ? ME.email : '',
+      role: ME ? ME.role : '', aksi: aksi, target: target || '', detail: detail || ''
+    });
+  } catch (e) {}
+}
+
+/* ═══════ DISPATCHER — meniru call(action,data) versi lama ═══════ */
+async function call(action, data) {
+  data = data || {};
+  switch (action) {
+    case 'me': if (!ME) throw new Error('SESSION_EXPIRED'); return ME;
+    case 'logout': await auth.signOut(); return true;
+    case 'changePassword': return changePassword_(data);
+
+    case 'keys.available':   return keysByStatus_('TERSEDIA');
+    case 'keys.outstanding': return outstanding_();
+    case 'keys.list':        requireAdmin_(); return allKeys_();
+    case 'keys.create':      return keyCreate_(data);
+    case 'keys.update':      return keyUpdate_(data);
+    case 'keys.delete':      return keyDelete_(data.id);
+
+    case 'loans.borrow':     return borrow_(data.keyIds);
+    case 'loans.return':     return returnKeys_(data.keyIds, data.catatan);
+    case 'loans.myHistory':  return history_({ self:true });
+    case 'history':          requireAdmin_(); return history_(data);
+    case 'dashboard':        requireAdmin_(); return dashboard_();
+
+    case 'users.list':          requireSuper_(); return usersList_();
+    case 'users.create':        return userCreate_(data);
+    case 'users.update':        return userUpdate_(data);
+    case 'users.setStatus':     return userSetStatus_(data);
+    case 'users.resetPassword': return userResetPw_(data.email);
+    case 'users.delete':        return userDelete_(data.email);
+    case 'audit.list':          requireSuper_(); return auditList_(data);
+
+    default: throw new Error('Aksi tidak dikenal: ' + action);
+  }
+}
+function requireAdmin_(){ if(!isAdmin()) throw new Error('Akses ditolak. Halaman ini untuk admin.'); }
+function requireSuper_(){ if(!isSuper()) throw new Error('Akses ditolak. Hanya super admin.'); }
+
+/* ---- KUNCI ---- */
+async function keysByStatus_(status) {
+  const q = await db.collection('keys').where('status','==',status).get();
+  return q.docs.map(keyDoc).sort((a,b)=>a.nama.localeCompare(b.nama));
+}
+async function allKeys_() {
+  const q = await db.collection('keys').get();
+  return q.docs.map(keyDoc).sort((a,b)=>a.nama.localeCompare(b.nama));
+}
+async function outstanding_() {
+  const q = await db.collection('keys').where('status','==','DIPINJAM').get();
+  return q.docs.map(d=>{ const k=keyDoc(d); k.milikSaya = k.email.trim().toLowerCase()===ME.email; return k; })
+    .sort((a,b)=> a.milikSaya!==b.milikSaya ? (a.milikSaya?-1:1) : b.jam-a.jam);
+}
+async function keyCreate_(d) {
+  requireAdmin_();
+  const nama=String(d.nama||'').trim().toUpperCase(); if(!nama) throw new Error('Nama kunci wajib diisi.');
+  const kode=String(d.kode||'').trim();
+  await db.collection('keys').add({ nama, kode, status:'TERSEDIA', pemegang:'', email:'', dept:'', sejak:null, loanId:'' });
+  await writeAudit('KUNCI_DITAMBAH', nama, 'Kode: '+(kode||'—'));
+  return true;
+}
+async function keyUpdate_(d) {
+  requireAdmin_();
+  const ref=db.collection('keys').doc(d.id); const snap=await ref.get();
+  if(!snap.exists) throw new Error('Kunci tidak ditemukan.');
+  const nama=String(d.nama||'').trim().toUpperCase(); const kode=String(d.kode||'').trim();
+  await ref.update({ nama, kode });
+  await writeAudit('KUNCI_DIUBAH', nama, 'Kode: '+kode);
+  return true;
+}
+async function keyDelete_(id) {
+  requireAdmin_();
+  const ref=db.collection('keys').doc(id); const snap=await ref.get();
+  if(!snap.exists) throw new Error('Kunci tidak ditemukan.');
+  if(String(snap.data().status||'').toUpperCase()==='DIPINJAM') throw new Error('Kunci sedang dipinjam. Kembalikan dulu.');
+  await writeAudit('KUNCI_DIHAPUS', String(snap.data().nama||''), 'Kode: '+String(snap.data().kode||'—'));
+  await ref.delete();
+  return true;
+}
+
+/* ---- PINJAM / KEMBALI (transaksi atomik) ---- */
+function newLoanId(){ const d=new Date(); const p=n=>('0'+n).slice(-2);
+  return 'L-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
+
+async function borrow_(keyIds) {
+  keyIds=(keyIds||[]).slice(0,5); if(!keyIds.length) throw new Error('Pilih minimal 1 kunci.');
+  const loanId=newLoanId(); const taken=[];
+  await db.runTransaction(async tx=>{
+    const refs=keyIds.map(id=>db.collection('keys').doc(id));
+    const snaps=await Promise.all(refs.map(r=>tx.get(r)));
+    snaps.forEach((s,i)=>{
+      if(!s.exists) throw new Error('Kunci tidak ditemukan.');
+      const k=s.data();
+      if(String(k.status||'').toUpperCase()==='DIPINJAM') throw new Error('Kunci "'+k.nama+'" sudah dipinjam '+k.pemegang+'.');
+      tx.update(refs[i], { status:'DIPINJAM', pemegang:ME.name, email:ME.email, dept:ME.dept,
+        sejak:firebase.firestore.FieldValue.serverTimestamp(), loanId });
+      taken.push(String(k.nama));
+    });
+  });
+  await db.collection('loans').add({ ts:firebase.firestore.FieldValue.serverTimestamp(),
+    nama:ME.name, dept:ME.dept, status:'PINJAM', keys:taken, by:ME.name, byEmail:ME.email,
+    jenis:'SENDIRI', catatan:'', loanId });
+  return { keys:taken, loanId };
+}
+
+async function returnKeys_(keyIds, catatan) {
+  keyIds=(keyIds||[]).slice(0,10); if(!keyIds.length) throw new Error('Pilih minimal 1 kunci.');
+  const groups={}; const back=[]; let diwakilkan=0;
+  await db.runTransaction(async tx=>{
+    const refs=keyIds.map(id=>db.collection('keys').doc(id));
+    const snaps=await Promise.all(refs.map(r=>tx.get(r)));
+    snaps.forEach((s,i)=>{
+      if(!s.exists) throw new Error('Kunci tidak ditemukan.');
+      const k=s.data();
+      if(String(k.status||'').toUpperCase()!=='DIPINJAM') throw new Error('Kunci "'+k.nama+'" sudah tersedia.');
+      const em=String(k.email||'').trim().toLowerCase();
+      const g=groups[em]||(groups[em]={nama:String(k.pemegang||'(tidak tercatat)'),dept:String(k.dept||''),keys:[],loanIds:{}});
+      g.keys.push(String(k.nama)); if(k.loanId) g.loanIds[k.loanId]=1;
+      back.push(String(k.nama));
+      tx.update(refs[i], { status:'TERSEDIA', pemegang:'', email:'', dept:'', sejak:null, loanId:'' });
+    });
+  });
+  for (const em of Object.keys(groups)) {
+    const g=groups[em]; const sendiri=(em===ME.email); if(!sendiri) diwakilkan+=g.keys.length;
+    const jenis = sendiri?'SENDIRI':(isAdmin()?'ADMIN OVERRIDE':'DIWAKILKAN');
+    const auto = sendiri?'':'Dikembalikan oleh '+ME.name+' ('+ME.email+') mewakili '+g.nama+'.';
+    const note=[auto,String(catatan||'').trim()].filter(Boolean).join(' ');
+    await db.collection('loans').add({ ts:firebase.firestore.FieldValue.serverTimestamp(),
+      nama:g.nama, dept:g.dept, status:'KEMBALI', keys:g.keys, by:ME.name, byEmail:ME.email,
+      jenis, catatan:note, loanId:Object.keys(g.loanIds).join(', ') });
+    if(!sendiri) await writeAudit('KUNCI_DIKEMBALIKAN_MEWAKILI', g.nama, g.keys.join(', ')+(note?' — '+note:''));
+  }
+  return { keys:back, diwakilkan };
+}
+
+/* ---- HISTORY ---- */
+async function history_(f) {
+  f=f||{}; const selfOnly = f.self===true || !isAdmin();
+  const q = await db.collection('loans').orderBy('ts','desc').limit(500).get();
+  const out=[];
+  q.forEach(doc=>{
+    const r=doc.data();
+    const nama=String(r.nama||''), dept=String(r.dept||''), stat=String(r.status||'');
+    const by=String(r.by||nama), byMail=String(r.byEmail||'').trim().toLowerCase();
+    const jenis=String(r.jenis||'SENDIRI'), keys=(r.keys||[]).map(String);
+    if(selfOnly && nama.toUpperCase()!==ME.name.toUpperCase() && byMail!==ME.email) return;
+    if(f.dept && dept!==f.dept) return;
+    if(f.status && stat.indexOf(f.status)!==0) return;
+    if(f.jenis && jenis!==f.jenis) return;
+    if(f.q){ const hay=[nama,dept,by,jenis,r.catatan,r.loanId,keys.join(' ')].join(' ').toUpperCase(); if(hay.indexOf(String(f.q).toUpperCase())===-1) return; }
+    const t=r.ts&&r.ts.toDate?r.ts.toDate():null;
+    if(f.from && t && t<new Date(f.from+'T00:00:00')) return;
+    if(f.to   && t && t>new Date(f.to+'T23:59:59')) return;
+    out.push({ waktu:tsFmt(r.ts), nama, dept, status:stat, keys, by, jenis, catatan:String(r.catatan||''), loanId:String(r.loanId||'') });
+  });
+  return out;
+}
+
+/* ---- DASHBOARD ---- */
+async function dashboard_() {
+  const [keysSnap, usersSnap] = await Promise.all([ db.collection('keys').get(), db.collection('users').get() ]);
+  const all=keysSnap.docs.map(keyDoc); const out=all.filter(k=>k.status==='DIPINJAM');
+  let aktif=0, nonaktif=0;
+  usersSnap.forEach(d=>{ (d.data().aktif===false?nonaktif++:aktif++); });
+  return { total:all.length, dipinjam:out.length, tersedia:all.length-out.length,
+    userAktif:aktif, userNonaktif:nonaktif, outstanding: out.sort((a,b)=>b.jam-a.jam) };
+}
+
+/* ---- USER ---- */
+async function usersList_() {
+  const [usersSnap, keysSnap] = await Promise.all([ db.collection('users').get(), db.collection('keys').where('status','==','DIPINJAM').get() ]);
+  const held={}; keysSnap.forEach(d=>{ const e=String(d.data().email||'').trim().toLowerCase(); held[e]=(held[e]||0)+1; });
+  return usersSnap.docs.map(d=>{ const u=d.data(); const email=String(u.email||d.id).trim().toLowerCase();
+    return { nama:String(u.nama||''), email, dept:String(u.dept||''), role:normRole(u.role),
+      aktif:u.aktif!==false, offDate:u.offDate?tsFmt(u.offDate):'', pegang:held[email]||0 }; })
+    .sort((a,b)=> a.aktif!==b.aktif ? (a.aktif?-1:1) : a.nama.localeCompare(b.nama));
+}
+
+// Buat akun Auth lewat instance Firebase KEDUA agar sesi super admin tidak tergeser.
+async function userCreate_(d) {
+  requireSuper_();
+  const email=String(d.email||'').trim().toLowerCase();
+  if(!d.nama||!email) throw new Error('Nama dan email wajib diisi.');
+  if(!d.password||String(d.password).length<6) throw new Error('Password minimal 6 karakter.');
+  const exists=await db.collection('users').doc(email).get();
+  if(exists.exists) throw new Error('Email sudah terdaftar.');
+
+  let secondary;
+  try {
+    secondary = firebase.initializeApp(firebaseConfig, 'secondary-'+Date.now());
+    await secondary.auth().createUserWithEmailAndPassword(email, d.password);
+    await secondary.auth().signOut();
+  } catch (e) {
+    if(e.code==='auth/email-already-in-use'){ /* akun Auth sudah ada, lanjut buat doc saja */ }
+    else throw new Error('Gagal membuat akun: '+(e.message||e.code));
+  } finally { if(secondary) await secondary.delete(); }
+
+  await db.collection('users').doc(email).set({
+    nama:String(d.nama).trim().toUpperCase(), email, dept:String(d.dept||'').trim().toUpperCase(),
+    role:normRole(d.role), aktif:true, offDate:null });
+  await writeAudit('USER_DITAMBAH', email, 'Nama: '+d.nama+' · Role: '+normRole(d.role));
+  return true;
+}
+async function userUpdate_(d) {
+  requireSuper_();
+  const email=String(d.email||'').trim().toLowerCase();
+  const ref=db.collection('users').doc(email); const snap=await ref.get();
+  if(!snap.exists) throw new Error('User tidak ditemukan.');
+  const oldRole=normRole(snap.data().role); const newRole=normRole(d.role);
+  if(email===ME.email && newRole!==ROLE.SUPER) throw new Error('Anda tidak bisa menurunkan role akun sendiri.');
+  if(oldRole===ROLE.SUPER && newRole!==ROLE.SUPER){ const n=await countSuper_(); if(n<=1) throw new Error('Harus ada minimal satu super admin. Angkat penggantinya dulu.'); }
+  await ref.update({ nama:String(d.nama||'').trim().toUpperCase(), dept:String(d.dept||'').trim().toUpperCase(), role:newRole });
+  await writeAudit(oldRole!==newRole?'ROLE_DIUBAH':'USER_DIUBAH', email, oldRole!==newRole?(oldRole+' → '+newRole):'Data diperbarui');
+  return true;
+}
+async function countSuper_() {
+  const q=await db.collection('users').where('role','==','SUPERADMIN').get();
+  let n=0; q.forEach(d=>{ if(d.data().aktif!==false) n++; }); return n;
+}
+async function userSetStatus_(d) {
+  requireSuper_();
+  const email=String(d.email||'').trim().toLowerCase();
+  const ref=db.collection('users').doc(email); const snap=await ref.get();
+  if(!snap.exists) throw new Error('User tidak ditemukan.');
+  if(!d.aktif){
+    if(email===ME.email) throw new Error('Anda tidak bisa menonaktifkan akun sendiri.');
+    if(normRole(snap.data().role)===ROLE.SUPER){ const n=await countSuper_(); if(n<=1) throw new Error('Super admin aktif terakhir. Angkat pengganti dulu.'); }
+    const heldSnap=await db.collection('keys').where('email','==',email).get();
+    let held=0; heldSnap.forEach(dd=>{ if(String(dd.data().status||'').toUpperCase()==='DIPINJAM') held++; });
+    if(held>0) throw new Error('Masih memegang '+held+' kunci. Kembalikan dulu.');
+    await ref.update({ aktif:false, offDate:firebase.firestore.FieldValue.serverTimestamp() });
+    await writeAudit('USER_DINONAKTIFKAN', email, String(d.alasan||'Tanpa keterangan'));
+  } else {
+    await ref.update({ aktif:true, offDate:null });
+    await writeAudit('USER_DIAKTIFKAN', email, String(d.alasan||'Diaktifkan kembali'));
+  }
+  return true;
+}
+// Reset password: kirim email reset (cara aman client-side, tanpa Admin SDK).
+async function userResetPw_(email) {
+  requireSuper_();
+  email=String(email||'').trim().toLowerCase();
+  await auth.sendPasswordResetEmail(email);
+  await writeAudit('PASSWORD_RESET_EMAIL', email, 'Link reset dikirim ke email user');
+  return true;
+}
+async function userDelete_(email) {
+  requireSuper_();
+  email=String(email||'').trim().toLowerCase();
+  if(email===ME.email) throw new Error('Tidak bisa menghapus akun sendiri.');
+  const ref=db.collection('users').doc(email); const snap=await ref.get();
+  if(!snap.exists) throw new Error('User tidak ditemukan.');
+  if(normRole(snap.data().role)===ROLE.SUPER){ const n=await countSuper_(); if(n<=1) throw new Error('Super admin aktif terakhir. Tidak bisa dihapus.'); }
+  await ref.delete();
+  await writeAudit('USER_DIHAPUS', email, 'Doc dihapus. Akun Auth perlu dihapus manual di Console bila perlu.');
+  return true;
+}
+
+/* ---- AUDIT ---- */
+async function auditList_(f) {
+  f=f||{};
+  const q=await db.collection('audit').orderBy('ts','desc').limit(400).get();
+  const out=[];
+  q.forEach(doc=>{ const r=doc.data();
+    if(f.q){ const hay=[r.aktor,r.email,r.aksi,r.target,r.detail].join(' ').toUpperCase(); if(hay.indexOf(String(f.q).toUpperCase())===-1) return; }
+    out.push({ waktu:tsFmt(r.ts), aktor:String(r.aktor||''), email:String(r.email||''),
+      role:String(r.role||''), aksi:String(r.aksi||''), target:String(r.target||''), detail:String(r.detail||'') });
+  });
+  return out;
+}
+
+/* ---- GANTI PASSWORD (reauth dulu) ---- */
+async function changePassword_(d) {
+  const u=auth.currentUser; if(!u) throw new Error('SESSION_EXPIRED');
+  if(!d.newPassword||String(d.newPassword).length<6) throw new Error('Password baru minimal 6 karakter.');
+  const cred=firebase.auth.EmailAuthProvider.credential(u.email, d.oldPassword||'');
+  try { await u.reauthenticateWithCredential(cred); }
+  catch(e){ throw new Error('Password lama tidak cocok.'); }
+  await u.updatePassword(d.newPassword);
+  await writeAudit('PASSWORD_DIGANTI', ME.email, 'Diganti sendiri oleh pemilik akun');
+  return true;
+}
+
 /* ═══════ LOGIN ═══════ */
 $('btnLogin').onclick = doLogin;
 $('lEmail').onkeydown = e => { if (e.key === 'Enter') $('lPass').focus(); };
 $('lPass').onkeydown  = e => { if (e.key === 'Enter') doLogin(); };
 
 async function doLogin() {
-  const b = $('btnLogin');
-  $('lErr').classList.add('hide');
-  b.disabled = true; b.textContent = 'Memeriksa…';
+  const b=$('btnLogin'); $('lErr').classList.add('hide');
+  b.disabled=true; b.textContent='Memeriksa…';
   try {
-    const r = await call('login', { email: $('lEmail').value, password: $('lPass').value });
-    TOKEN = r.token;
-    sessionStorage.setItem('km_token', TOKEN);
-    $('lPass').value = '';                 // buang password dari DOM
-    boot(r.user);
-  } catch (e) { showLoginErr(e.message); }
-  finally { b.disabled = false; b.textContent = 'Masuk'; }
+    const cred=await auth.signInWithEmailAndPassword($('lEmail').value.trim(), $('lPass').value);
+    $('lPass').value='';
+    await loadProfileAndBoot_(cred.user);
+  } catch(e){
+    let m='Email atau password salah.';
+    if(e.code==='auth/too-many-requests') m='Terlalu banyak percobaan. Coba lagi nanti.';
+    if(e.code==='auth/network-request-failed') m='Koneksi gagal. Periksa jaringan.';
+    if(e.message && e.message.indexOf('dinonaktifkan')>-1) m=e.message;
+    showLoginErr(m);
+  } finally { b.disabled=false; b.textContent='Masuk'; }
+}
+
+async function loadProfileAndBoot_(fbUser) {
+  const email=(fbUser.email||'').trim().toLowerCase();
+  const snap=await db.collection('users').doc(email).get();
+  if(!snap.exists){ await auth.signOut(); throw new Error('Akun belum terdaftar di sistem. Hubungi IT Manager.'); }
+  const u=snap.data();
+  if(u.aktif===false){ await auth.signOut(); throw new Error('Akun Anda dinonaktifkan. Hubungi IT Manager.'); }
+  ME={ email, name:String(u.nama||''), dept:String(u.dept||''), role:normRole(u.role) };
+  boot(ME);
 }
 
 function signOut(silent) {
-  if (TOKEN && !silent) call('logout', {}).catch(() => {});
-  TOKEN = ''; ME = null;
-  sessionStorage.removeItem('km_token');
+  auth.signOut().catch(()=>{});
+  ME=null;
   $('vApp').classList.add('hide');
   $('vLogin').classList.remove('hide');
 }
 $('btnLogout').onclick = () => signOut();
+
+/* pulihkan sesi otomatis (Firebase menyimpan login) */
+auth.onAuthStateChanged(async user=>{
+  if(!user){ return; }
+  try { await loadProfileAndBoot_(user); }
+  catch(e){ showLoginErr(e.message); }
+});
 
 /* ═══════ TABS per role ═══════ */
 const TABS = {
@@ -422,10 +745,6 @@ function boot(user) {
   $('vApp').classList.remove('hide');
   buildTabs(user.role);
 }
-(async function restore() {
-  if (!TOKEN) return;
-  try { boot(await call('me', {})); } catch (e) { signOut(true); }
-})();
 
 /* ═══════ PILIH KUNCI ═══════ */
 const PICK = new Set();
