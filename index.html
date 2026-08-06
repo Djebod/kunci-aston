@@ -5,98 +5,155 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#12181F">
-<title>Aston Cirebon — Portal Staff</title>
+<title>Exit Permit — Aston Cirebon</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --slate:#12181F; --slate-2:#1B242F; --line:#2B3644;
-    --brass:#C89B3C; --navy:#00205B; --paper:#EDEFF2; --muted:#8A97A6;
-    --green:#3FA96B; --red:#D8544F; --blue:#5B93D6;
+    --brass:#C89B3C; --brass-dim:#8C6D2A; --navy:#00205B;
+    --paper:#EDEFF2; --muted:#8A97A6;
+    --green:#3FA96B; --red:#D8544F; --amber:#E0A93C; --blue:#5B93D6; --violet:#8B7BD8;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;background:
-      radial-gradient(1100px 480px at 50% -10%, rgba(0,32,91,.55), transparent 60%),
-      var(--slate);
-    color:var(--paper);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5;
-    min-height:100dvh;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+  body{margin:0;background:var(--slate);color:var(--paper);
+    font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5;
+    padding-bottom:env(safe-area-inset-bottom)}
   h1,h2,h3{font-family:'Barlow Condensed',sans-serif;letter-spacing:.02em;margin:0}
-  .wrap{max-width:820px;margin:0 auto}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px}
   .hide{display:none!important}
 
-  /* ===== LOGIN ===== */
-  .login{min-height:100dvh;display:grid;place-items:center}
-  .login .box{width:100%;max-width:380px}
-  .mark{max-width:220px;max-height:92px;margin:0 auto 22px;display:block}
-  .card{background:var(--slate-2);border:1px solid var(--line);border-radius:12px;padding:18px}
-  .field{margin-bottom:14px}
-  label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px;font-weight:600}
-  input{width:100%;background:#0D1319;border:1px solid var(--line);color:var(--paper);border-radius:8px;padding:12px;font:400 15px Inter,sans-serif}
-  input:focus{outline:2px solid var(--brass);outline-offset:-1px;border-color:transparent}
-  .btn{font:600 13px Inter,sans-serif;padding:12px 18px;border-radius:8px;border:1px solid var(--line);
+  header{position:sticky;top:0;z-index:20;background:rgba(18,24,31,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .hbar{display:flex;align-items:center;gap:12px;height:60px}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .brand .t{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+  .brand .s{font-size:10px;color:var(--brass);text-transform:uppercase;letter-spacing:.12em;white-space:nowrap}
+  .spacer{flex:1}
+  .who{text-align:right;line-height:1.2}
+  .who b{display:block;font-size:13px}
+  .who span{font-size:11px;color:var(--muted)}
+  @media(max-width:560px){.brand .s{display:none}}
+
+  nav{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{background:none;border:0;color:var(--muted);padding:12px 13px;cursor:pointer;white-space:nowrap;
+    font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;
+    border-bottom:2px solid transparent;margin-bottom:-1px;position:relative}
+  nav button:hover{color:var(--paper)}
+  nav button[aria-selected="true"]{color:var(--brass);border-bottom-color:var(--brass)}
+  nav button .badge{position:absolute;top:6px;right:2px;background:var(--red);color:#fff;
+    font-size:9px;font-weight:700;border-radius:99px;padding:1px 5px;letter-spacing:0}
+
+  .card{background:var(--slate-2);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--slate-2);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .stat .v{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;line-height:1}
+  .stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:4px}
+  .stat.hot .v{color:var(--brass)}
+
+  button.btn{font:600 13px Inter,sans-serif;padding:11px 18px;border-radius:8px;border:1px solid var(--line);
     background:var(--slate-2);color:var(--paper);cursor:pointer;transition:.12s}
-  .btn:hover:not(:disabled){border-color:var(--brass)}
-  .btn.primary{background:var(--brass);border-color:var(--brass);color:#14100A}
-  .btn.primary:hover:not(:disabled){background:#DBAE49}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .btn.mini{padding:8px 12px;font-size:12px}
+  button.btn:hover:not(:disabled){border-color:var(--brass-dim)}
+  button.btn:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--brass);border-color:var(--brass);color:#14100A}
+  button.primary:hover:not(:disabled){background:#DBAE49}
+  button.ok{background:var(--green);border-color:var(--green);color:#06210f}
+  button.ok:hover:not(:disabled){filter:brightness(1.1)}
+  button.danger{color:var(--red)}
+  button.mini{padding:6px 10px;font-size:12px;border-radius:6px}
+
+  input,select,textarea{width:100%;background:#0D1319;border:1px solid var(--line);color:var(--paper);
+    border-radius:8px;padding:11px 12px;font:400 15px Inter,sans-serif}
+  textarea{min-height:70px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brass);outline-offset:-1px;border-color:transparent}
+  label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.08em;margin:0 0 6px;font-weight:600}
+  .field{margin-bottom:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;
+    padding:10px 8px;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+  td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:10px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  .pill.hod{background:rgba(224,169,60,.16);color:var(--amber)}
+  .pill.hr{background:rgba(91,147,214,.16);color:var(--blue)}
+  .pill.ok{background:rgba(63,169,107,.16);color:var(--green)}
+  .pill.no{background:rgba(216,84,79,.16);color:var(--red)}
+  .pill.sick{background:rgba(139,123,216,.16);color:var(--violet)}
+  .pill.exit{background:rgba(200,155,60,.14);color:var(--brass)}
+
+  .sec{margin:24px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .sec h2{font-size:18px;text-transform:uppercase;font-weight:600}
+  .sec .rule{flex:1;height:1px;background:var(--line);min-width:20px}
+  .note{color:var(--muted);font-size:13px;margin:0 0 14px}
+  main{padding-top:16px;padding-bottom:28px}
+  .empty{color:var(--muted);text-align:center;padding:38px 16px;font-size:14px}
+
+  /* permit card (inbox) */
+  .pcard{background:var(--slate-2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+  .pcard .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+  .pcard .nm{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;text-transform:uppercase;line-height:1.1}
+  .pcard .meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .pcard .body{margin:10px 0;font-size:14px}
+  .pcard .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:13px;margin-top:8px}
+  .pcard .kv b{color:var(--muted);font-weight:600}
+  .pcard .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .flow{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:8px;flex-wrap:wrap}
+  .flow .step{padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+  .flow .step.done{border-color:var(--green);color:var(--green)}
+  .flow .step.now{border-color:var(--brass);color:var(--brass)}
+  .flow .arr{color:var(--muted)}
+
+  /* login */
+  .login{min-height:100dvh;display:grid;place-items:center;padding:24px}
+  .login .box{width:100%;max-width:370px}
+  .login .mark{width:auto;max-width:210px;height:auto;max-height:88px;margin:0 auto 20px;display:block}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;
+    background:var(--slate-2);border:1px solid var(--brass);border-radius:8px;
+    padding:12px 18px;font-size:13px;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.err{border-color:var(--red)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:grid;place-items:center;padding:16px}
+  .modal .inner{background:var(--slate-2);border:1px solid var(--line);border-radius:12px;
+    padding:20px;max-width:460px;width:100%;max-height:90vh;overflow:auto}
+  .switch{display:inline-flex;background:#0D1319;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .switch button{background:none;border:0;color:var(--muted);padding:9px 16px;cursor:pointer;font:600 13px Inter,sans-serif}
+  .switch button[aria-pressed="true"]{background:var(--brass);color:#14100A}
   a.link{color:var(--brass);font-size:12px;text-decoration:none}
   .pwwrap{position:relative}
   .pwwrap input{padding-right:64px}
   .pweye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;
     color:var(--brass);font:600 11px Inter,sans-serif;cursor:pointer;padding:6px 8px;text-transform:uppercase;letter-spacing:.05em}
   .pweye:hover{color:#DBAE49}
-
-  /* ===== HUB ===== */
-  .topbar{display:flex;align-items:center;gap:12px;padding:18px 0 8px}
-  .topbar .logo{height:40px;width:auto}
-  .topbar .who{margin-left:auto;text-align:right;line-height:1.2}
-  .topbar .who b{display:block;font-size:14px}
-  .topbar .who span{font-size:11px;color:var(--muted)}
-  .hello{margin:26px 0 4px;font-size:30px;font-weight:700;text-transform:uppercase}
-  .subhello{color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:26px}
-
-  .modules{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:620px){.modules{grid-template-columns:1fr}}
-  .mod{display:block;text-decoration:none;color:inherit;position:relative;overflow:hidden;
-    background:var(--slate-2);border:1px solid var(--line);border-radius:16px;padding:22px;
-    transition:.15s;min-height:190px}
-  .mod:hover{border-color:var(--brass);transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.35)}
-  .mod .ico{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;margin-bottom:16px}
-  .mod .ico svg{width:28px;height:28px}
-  .mod.k .ico{background:rgba(200,155,60,.14)}
-  .mod.p .ico{background:rgba(91,147,214,.14)}
-  .mod h2{font-size:23px;font-weight:600;text-transform:uppercase;line-height:1.05}
-  .mod p{color:var(--muted);font-size:13px;margin:8px 0 0}
-  .mod .go{position:absolute;right:20px;bottom:18px;color:var(--brass);font-size:22px;transition:.15s}
-  .mod:hover .go{transform:translateX(4px)}
-  .mod .tagline{position:absolute;right:20px;top:22px;font-size:10px;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--muted)}
-
-  .footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
-  .footer .sep{margin:0 8px;opacity:.4}
-
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;
-    background:var(--slate-2);border:1px solid var(--brass);border-radius:8px;padding:12px 18px;font-size:13px;max-width:90vw}
-  .toast.err{border-color:var(--red)}
-  .spin{display:grid;place-items:center;min-height:100dvh;color:var(--muted)}
 </style>
 </head>
 <body>
 
-<!-- loading awal -->
-<div id="vBoot" class="spin">Memuat…</div>
+<!-- ============ LOADING ============ -->
+<section id="vLoad" class="login">
+  <div style="text-align:center;color:var(--muted)">
+    <img src="logo-aston-white.png" alt="" style="max-width:180px;max-height:72px;margin:0 auto 18px;display:block;opacity:.9" onerror="this.style.display='none'">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--paper)">Loading page…</div>
+    <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:6px">Aston Cirebon</div>
+  </div>
+</section>
 
-<!-- ===== LOGIN ===== -->
+<!-- ============ LOGIN ============ -->
 <section id="vLogin" class="login hide">
   <div class="box">
     <img src="logo-aston-white.png" alt="Aston Cirebon" class="mark" onerror="this.style.display='none'">
-    <h1 style="font-size:24px;text-align:center;text-transform:uppercase;letter-spacing:.03em">Portal Staff</h1>
-    <p style="text-align:center;color:var(--muted);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin:8px 0 24px">Aston Cirebon Hotel</p>
+    <h1 style="font-size:24px;text-align:center;text-transform:uppercase;letter-spacing:.03em">Exit Permit</h1>
+    <p style="text-align:center;color:var(--muted);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin:8px 0 24px">Aston Cirebon</p>
     <div class="card">
       <div class="field"><label for="lEmail">Email</label>
         <input id="lEmail" type="email" autocomplete="username" placeholder="nama@astoncirebon.com"></div>
@@ -107,114 +164,700 @@
       <p id="lErr" class="hide" style="color:var(--red);font-size:13px;margin:12px 0 0"></p>
       <p style="margin:12px 0 0;text-align:center"><a href="#" id="lForgot" class="link">Lupa password?</a></p>
     </div>
+    <p style="text-align:center;color:var(--muted);font-size:11px;margin-top:16px">Gunakan email terdaftar di HR.</p>
   </div>
 </section>
 
-<!-- ===== HUB ===== -->
-<section id="vHub" class="wrap hide">
-  <div class="topbar">
-    <img src="logo-aston-white.png" alt="Aston Cirebon" class="logo" onerror="this.style.display='none'">
-    <div class="who"><b id="uName">—</b><span id="uMeta">—</span></div>
-    <button class="btn mini" id="btnLogout" style="margin-left:12px;background:#D8544F;border-color:#D8544F;color:#111;font-weight:700">Keluar</button>
-  </div>
-
-  <div class="hello" id="hello">Halo</div>
-  <div class="subhello">Pilih aplikasi yang ingin dibuka</div>
-
-  <div class="modules">
-    <a class="mod k" href="kunci.html">
-      <div class="ico">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#C89B3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="8" cy="8" r="4.5"/><circle cx="8" cy="8" r="1.2" fill="#C89B3C"/>
-          <line x1="11.2" y1="11.2" x2="20" y2="20"/><line x1="16" y1="16" x2="19" y2="13"/><line x1="19" y1="19" x2="22" y2="16"/>
-        </svg>
+<!-- ============ APP ============ -->
+<div id="vApp" class="hide">
+  <header>
+    <div class="wrap">
+      <div class="hbar">
+        <div class="brand"><span class="t">Exit Permit</span><span class="s">Aston Cirebon</span></div>
+        <div class="spacer"></div>
+        <div class="who"><b id="uName">—</b><span id="uRole">—</span></div>
+        <a href="index.html" class="btn mini" style="text-decoration:none;display:inline-flex;align-items:center;margin-right:8px;background:#E8912C;border-color:#E8912C;color:#111;font-weight:700">‹ Menu Utama</a>
+        <button class="btn mini" id="btnLogout" style="background:#D8544F;border-color:#D8544F;color:#111;font-weight:700">Keluar</button>
       </div>
-      <h2>Peminjaman &amp; Pengembalian Kunci</h2>
-      <p>Pinjam, kembalikan, dan lacak kunci antar shift.</p>
-      <span class="go">→</span>
-    </a>
+      <nav id="tabs"></nav>
+    </div>
+  </header>
 
-    <a class="mod p" href="permit.html">
-      <div class="ico">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#5B93D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
-          <path d="M9 7h6M9 11h6M9 15h3"/><path d="M17 15l2 2 3-3"/>
-        </svg>
+  <main class="wrap">
+    <!-- AJUKAN -->
+    <section id="tAjukan" class="tab">
+      <div class="sec"><h2>Ajukan izin</h2><div class="rule"></div></div>
+      <div class="card" style="max-width:640px">
+        <div class="field">
+          <label>Jenis izin</label>
+          <div class="switch" id="swType">
+            <button data-t="Exit Permit" aria-pressed="true">Exit Permit</button>
+            <button data-t="Sick Permit" aria-pressed="false">Sick Permit</button>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label for="fReason">Alasan / keperluan</label><input id="fReason" placeholder="mis. ke dokter gigi"></div>
+          <div class="field"><label for="fTimeOut">Jam keluar</label><input id="fTimeOut" type="time"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label for="fDur">Durasi (perkiraan)</label>
+            <select id="fDur">
+              <option value="0:30:00">30 menit</option>
+              <option value="1:00:00">1 jam</option>
+              <option value="1:30:00">1 jam 30 menit</option>
+              <option value="2:00:00" selected>2 jam</option>
+              <option value="3:00:00">3 jam</option>
+              <option value="4:00:00">4 jam</option>
+              <option value="1 hari">1 hari (sakit)</option>
+            </select>
+          </div>
+          <div class="field"><label>Departemen</label><input id="fDept" disabled></div>
+        </div>
+
+        <!-- transport -->
+        <div class="field">
+          <label>Butuh Drop Off / Pick Up / Kendaraan Hotel?</label>
+          <div class="switch" id="swTransport">
+            <button data-v="NO" aria-pressed="true">Tidak</button>
+            <button data-v="YES" aria-pressed="false">Ya</button>
+          </div>
+        </div>
+        <div id="transportBox" class="hide" style="border:1px dashed var(--line);border-radius:8px;padding:12px;margin-bottom:14px">
+          <div class="grid2">
+            <div class="field"><label for="fJenis">Jenis request</label>
+              <select id="fJenis"><option>Drop Off</option><option>Pick Up</option><option>Drop Off & Pick Up</option><option>Bring Hotel Car</option></select></div>
+            <div class="field"><label for="fTgl">Tanggal</label><input id="fTgl" type="date"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="fJam">Jam</label><input id="fJam" type="time"></div>
+            <div class="field"><label for="fTelp">No. Telepon</label><input id="fTelp" inputmode="tel" placeholder="08xx"></div>
+          </div>
+          <div class="field"><label for="fLokasi">Lokasi / Tujuan</label><input id="fLokasi" placeholder="mis. Grage Mall"></div>
+          <div class="field"><label for="fInfo">Informasi tambahan</label><textarea id="fInfo" placeholder="opsional"></textarea></div>
+        </div>
+
+        <button class="btn primary" id="btnSubmit" style="width:100%">Kirim pengajuan</button>
       </div>
-      <h2>Exit Permit</h2>
-      <p>Ajukan izin keluar / sakit dan alur persetujuan.</p>
-      <span class="go">→</span>
-    </a>
-  </div>
+    </section>
 
-  <div class="footer">
-    <span>Aston Cirebon Hotel &amp; Convention Center</span>
-    <span class="sep">·</span>
-    <a href="#" id="hForgot2" class="link">Ganti password?</a>
-  </div>
-</section>
+    <!-- PERMIT SAYA -->
+    <section id="tMine" class="tab hide">
+      <div class="sec"><h2>Permit saya</h2><div class="rule"></div></div>
+      <div id="mineList"></div>
+    </section>
 
-<!-- Firebase -->
+    <!-- PERSETUJUAN -->
+    <section id="tApprove" class="tab hide">
+      <div class="sec"><h2>Menunggu persetujuan</h2><div class="rule"></div>
+        <span id="apCount" class="pill hod"></span></div>
+      <p class="note" id="apNote"></p>
+      <div id="approveList"></div>
+    </section>
+
+    <!-- SEMUA -->
+    <section id="tAll" class="tab hide">
+      <div class="sec"><h2>Semua permit</h2><div class="rule"></div>
+        <button class="btn mini" id="btnCsv">Export CSV</button></div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="grid2">
+          <div class="field"><label for="fFrom">Dari tanggal</label><input id="fFrom" type="date"></div>
+          <div class="field"><label for="fTo">Sampai</label><input id="fTo" type="date"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label for="fStat">Status</label>
+            <select id="fStat"><option value="">Semua</option><option>PENDING_HOD</option><option>PENDING_HRD</option><option>APPROVED</option><option>REJECTED</option></select></div>
+          <div class="field"><label for="fQ">Cari (nama/dept/alasan)</label><input id="fQ" placeholder="ketik lalu Terapkan"></div>
+        </div>
+        <button class="btn primary mini" id="btnFilter">Terapkan filter</button>
+      </div>
+      <div class="card scroll"><table id="tblAll"></table></div>
+    </section>
+
+    <!-- KARYAWAN -->
+    <section id="tEmp" class="tab hide">
+      <div class="sec"><h2>Manage karyawan</h2><div class="rule"></div>
+        <button class="btn primary mini" id="btnAddEmp">+ Karyawan</button>
+        <button class="btn mini" id="btnHeads">Atur Dept Head / HRD</button></div>
+      <p class="note">Ubah departemen, jabatan, level, status karyawan. Untuk menetapkan siapa kepala departemen & HRD, klik <b>Atur Dept Head / HRD</b>.</p>
+      <div class="field" style="max-width:340px"><input id="qEmp" placeholder="Cari nama / email / departemen…"></div>
+      <div class="card scroll"><table id="tblEmp"></table></div>
+    </section>
+
+    <!-- AKUN -->
+    <section id="tAkun" class="tab hide">
+      <div class="sec"><h2>Ganti password</h2><div class="rule"></div></div>
+      <div class="card" style="max-width:400px">
+        <div class="field"><label for="pOld">Password lama</label>
+          <div class="pwwrap"><input id="pOld" type="password">
+            <button type="button" class="pweye" onclick="togglePw(this,'pOld')">Lihat</button></div></div>
+        <div class="field"><label for="pNew">Password baru</label>
+          <div class="pwwrap"><input id="pNew" type="password" placeholder="Minimal 6 karakter">
+            <button type="button" class="pweye" onclick="togglePw(this,'pNew')">Lihat</button></div></div>
+        <div class="field"><label for="pNew2">Ulangi password baru</label>
+          <div class="pwwrap"><input id="pNew2" type="password" placeholder="Ketik ulang password baru">
+            <button type="button" class="pweye" onclick="togglePw(this,'pNew2')">Lihat</button></div></div>
+        <button class="btn primary" id="btnPass">Simpan password</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script>
-firebase.initializeApp(window.FIREBASE_CONFIG);
+/* ====== KONFIG FIREBASE — samakan dengan aplikasi kunci ====== */
+const firebaseConfig = window.FIREBASE_CONFIG;
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
+
 const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let toastT;
 function toast(m,e){clearTimeout(toastT);document.querySelectorAll('.toast').forEach(t=>t.remove());
   const el=document.createElement('div');el.className='toast'+(e?' err':'');el.textContent=m;document.body.appendChild(el);
   toastT=setTimeout(()=>el.remove(),3800);}
-function mapErr(e){const c=e.code||'';
-  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found'))return 'Email atau password salah.';
-  if(c.includes('too-many-requests'))return 'Terlalu banyak percobaan. Coba beberapa menit lagi.';
-  if(c.includes('operation-not-allowed'))return 'Login email belum diaktifkan di Firebase.';
-  return e.message||'Gagal masuk.';}
 
-function view(v){ ['vBoot','vLogin','vHub'].forEach(id=>$(id).classList.toggle('hide',id!==v)); }
-function togglePw(btn,id){ const el=$(id); if(!el)return;
-  const show=el.type==='password'; el.type=show?'text':'password'; btn.textContent=show?'Tutup':'Lihat'; }
+let ME=null, CFG={hrd:[],deptHeads:{}}, TYPE='Exit Permit', TRANSPORT='NO';
 
-/* login */
+/* ====== AUTH ====== */
 $('btnLogin').onclick=doLogin;
 $('lPass').onkeydown=e=>{if(e.key==='Enter')doLogin();};
 $('lEmail').onkeydown=e=>{if(e.key==='Enter')$('lPass').focus();};
 async function doLogin(){
   const b=$('btnLogin');$('lErr').classList.add('hide');b.disabled=true;b.textContent='Memeriksa…';
-  try{ await auth.signInWithEmailAndPassword($('lEmail').value.trim(),$('lPass').value); }
-  catch(e){ $('lErr').textContent=mapErr(e);$('lErr').classList.remove('hide'); }
-  finally{ b.disabled=false;b.textContent='Masuk';$('lPass').value=''; }
+  try{ await auth.signInWithEmailAndPassword($('lEmail').value.trim(), $('lPass').value); }
+  catch(e){ $('lErr').textContent=mapErr(e); $('lErr').classList.remove('hide'); }
+  finally{ b.disabled=false; b.textContent='Masuk'; $('lPass').value=''; }
+}
+function mapErr(e){
+  const c=e.code||'';
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found')) return 'Email atau password salah.';
+  if(c.includes('too-many-requests')) return 'Terlalu banyak percobaan. Coba beberapa menit lagi.';
+  if(c.includes('operation-not-allowed')) return 'Login email belum diaktifkan di Firebase.';
+  return e.message||'Gagal masuk.';
 }
 $('lForgot').onclick=async e=>{e.preventDefault();
   const em=$('lEmail').value.trim(); if(!em) return toast('Isi email dulu, lalu klik lupa password.',true);
   try{ await auth.sendPasswordResetEmail(em); toast('Email reset dikirim ke '+em+'.'); }
-  catch(err){ toast(mapErr(err),true); }};
-$('hForgot2').onclick=async e=>{e.preventDefault();
-  const em=auth.currentUser&&auth.currentUser.email; if(!em)return;
-  try{ await auth.sendPasswordResetEmail(em); toast('Email reset dikirim ke '+em+'.'); }
-  catch(err){ toast(mapErr(err),true); }};
+  catch(err){ toast(mapErr(err),true); }
+};
 $('btnLogout').onclick=()=>auth.signOut();
 
-/* state */
 auth.onAuthStateChanged(async user=>{
-  if(!user){ view('vLogin'); return; }
+  if(!user){ $('vLoad').classList.add('hide'); show('login'); return; }
+  $('vLoad').classList.add('hide');
   try{
     const em=user.email.toLowerCase();
     const snap=await db.collection('users').doc(em).get();
     if(!snap.exists){ toast('Akun belum terdaftar di database karyawan.',true); await auth.signOut(); return; }
     const d=snap.data();
     if(d.aktif===false){ toast('Akun Anda nonaktif. Hubungi HR.',true); await auth.signOut(); return; }
-    const nama=(d.nama||em).toUpperCase();
-    const first=nama.split(' ')[0];
-    $('hello').textContent='Halo, '+first;
-    $('uName').textContent=nama;
-    $('uMeta').textContent=(d.dept||'')+(d.jabatan?(' · '+d.jabatan):'');
-    view('vHub');
-  }catch(e){ toast('Gagal memuat: '+e.message,true); view('vLogin'); }
+    // load config dept head / HRD
+    try{ const c=await db.collection('config').doc('permit').get(); if(c.exists) CFG=c.data(); }catch(e){}
+    ME={ email:em, name:d.nama||'', dept:d.dept||'', role:(d.role||'STAFF').toUpperCase(),
+         jabatan:d.jabatan||'', level:d.level||'' };
+    ME.isHRD = (CFG.hrd||[]).map(x=>x.toLowerCase()).includes(em);
+    ME.isAdmin = (ME.role==='ADMIN'||ME.role==='SUPERADMIN');
+    // apakah dia dept head di suatu departemen?
+    ME.headOf = Object.keys(CFG.deptHeads||{}).filter(dp =>
+      (CFG.deptHeads[dp]||[]).map(x=>x.toLowerCase()).includes(em));
+    boot();
+  }catch(e){ toast('Gagal memuat data: '+e.message,true); }
 });
+
+/* ====== TABS ====== */
+function tabsFor(){
+  const t=[['tAjukan','Ajukan'],['tMine','Permit Saya']];
+  if(ME.isHRD || ME.headOf.length) t.push(['tApprove','Persetujuan']);
+  if(ME.isHRD || ME.isAdmin) t.push(['tAll','Semua']);
+  if(ME.isAdmin) t.push(['tEmp','Karyawan']);
+  t.push(['tAkun','Akun']);
+  return t;
+}
+let CUR='';
+function boot(){
+  $('uName').textContent=ME.name;
+  const tag=ME.isHRD?'HRD':(ME.headOf.length?'DEPT HEAD':(ME.isAdmin?ME.role:'STAFF'));
+  $('uRole').textContent=ME.dept+' · '+tag;
+  $('fDept').value=ME.dept;
+  const nav=$('tabs');nav.innerHTML='';
+  tabsFor().forEach(([id,label])=>{
+    const b=document.createElement('button');b.dataset.tab=id;b.dataset.label=label;
+    b.innerHTML=label+(id==='tApprove'?' <span class="badge hide" id="navBadge"></span>':'');
+    b.onclick=()=>show(id);nav.appendChild(b);
+  });
+  $('vLogin').classList.add('hide');$('vApp').classList.remove('hide');
+  show('tAjukan');
+  refreshApprovalCount();
+}
+function show(id){
+  if(id==='login'){ $('vApp').classList.add('hide'); $('vLogin').classList.remove('hide'); return; }
+  CUR=id;
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('hide',s.id!==id));
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id));
+  window.scrollTo(0,0);
+  ({tMine:loadMine,tApprove:loadApprove,tAll:loadAll,tEmp:loadEmp}[id]||(()=>{}))();
+}
+
+/* ====== AJUKAN ====== */
+$('swType').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  TYPE=b.dataset.t;[...$('swType').children].forEach(x=>x.setAttribute('aria-pressed',x===b));};
+$('swTransport').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  TRANSPORT=b.dataset.v;[...$('swTransport').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('transportBox').classList.toggle('hide',TRANSPORT!=='YES');};
+
+$('btnSubmit').onclick=async()=>{
+  const reason=$('fReason').value.trim();
+  if(!reason) return toast('Alasan wajib diisi.',true);
+  const b=$('btnSubmit');b.disabled=true;b.textContent='Mengirim…';
+  try{
+    const dept=ME.dept;
+    const heads=(CFG.deptHeads&&CFG.deptHeads[dept]?CFG.deptHeads[dept]:[]).map(x=>x.toLowerCase());
+    // kalau tak ada dept head untuk dept ini → langsung ke HRD
+    const startStatus = heads.length ? 'PENDING_HOD' : 'PENDING_HRD';
+    const doc={
+      shortId: Math.random().toString(16).slice(2,10),
+      createdAt: FV.serverTimestamp(),
+      employeeName: ME.name, email: ME.email, department: dept,
+      level: ME.level||'', jabatan: ME.jabatan||'',
+      typePermit: TYPE, reason,
+      timeOut: $('fTimeOut').value||'', durationAllowed: $('fDur').value,
+      needTransport: TRANSPORT,
+      jenisRequest: TRANSPORT==='YES'?$('fJenis').value:'',
+      tanggalTransport: TRANSPORT==='YES'?$('fTgl').value:'',
+      jamTransport: TRANSPORT==='YES'?$('fJam').value:'',
+      noTelepon: TRANSPORT==='YES'?$('fTelp').value:'',
+      lokasiTujuan: TRANSPORT==='YES'?$('fLokasi').value:'',
+      infoTambahan: TRANSPORT==='YES'?$('fInfo').value:'',
+      driverScheduled:'', driverName:'', driverEmail:'',
+      deptHeadEmails: heads,
+      status: startStatus,
+      approvalDeptHead: heads.length?'':'SKIP', deptHeadName:'', deptHeadEmail:'', remarkDeptHead:'', deptHeadAt:null,
+      approvalHR:'', namaHR:'', hrEmail:'', remarkHR:'', hrAt:null, bypass:false
+    };
+    await db.collection('permits').add(doc);
+    await audit('PERMIT_DIAJUKAN', ME.email, TYPE+' · '+reason);
+    toast('Pengajuan terkirim. Menunggu '+(heads.length?'Dept Head':'HRD')+'.');
+    $('fReason').value='';$('fLokasi').value='';$('fInfo').value='';
+    show('tMine');
+  }catch(e){ toast('Gagal: '+e.message,true); }
+  finally{ b.disabled=false; b.textContent='Kirim pengajuan'; }
+};
+
+/* ====== STATUS HELPERS ====== */
+function statusPill(s){
+  if(s==='APPROVED') return '<span class="pill ok">Disetujui</span>';
+  if(s==='REJECTED') return '<span class="pill no">Ditolak</span>';
+  if(s==='PENDING_HRD') return '<span class="pill hr">Menunggu HRD</span>';
+  return '<span class="pill hod">Menunggu Dept Head</span>';
+}
+function typePill(t){ return t==='Sick Permit'?'<span class="pill sick">Sick</span>':'<span class="pill exit">Exit</span>'; }
+function fmtTs(ts){ try{const d=ts&&ts.toDate?ts.toDate():new Date(ts);
+  return d.toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return '';} }
+function flow(p){
+  const hodDone = p.approvalDeptHead==='APPROVED'||p.approvalDeptHead==='SKIP'||p.bypass;
+  const hrDone = p.approvalHR==='APPROVED';
+  const rej = p.status==='REJECTED';
+  const s1cls = p.approvalDeptHead==='SKIP'?'step':(hodDone?'step done':(p.status==='PENDING_HOD'?'step now':'step'));
+  const s2cls = hrDone?'step done':(p.status==='PENDING_HRD'?'step now':'step');
+  const s1txt = p.approvalDeptHead==='SKIP'?'Dept Head (—)':'Dept Head';
+  return `<div class="flow">
+    <span class="${rej?'step':s1cls}">${p.bypass?'Dept Head (bypass)':s1txt}</span>
+    <span class="arr">→</span>
+    <span class="${rej?'step':s2cls}">HRD</span>
+    <span class="arr">→</span>
+    <span class="${hrDone?'step done':'step'}">${rej?'<span style="color:var(--red)">Ditolak</span>':'Selesai'}</span>
+  </div>`;
+}
+function detailKv(p){
+  let s=`<div class="kv">
+    <b>Alasan</b><span>${esc(p.reason)}</span>
+    <b>Jam keluar</b><span>${esc(p.timeOut||'-')}</span>
+    <b>Durasi</b><span>${esc(p.durationAllowed||'-')}</span>`;
+  if(p.needTransport==='YES'){
+    s+=`<b>Transport</b><span>${esc(p.jenisRequest)} · ${esc(p.tanggalTransport||'')} ${esc(p.jamTransport||'')}</span>
+    <b>Tujuan</b><span>${esc(p.lokasiTujuan||'-')}</span>
+    <b>Telepon</b><span>${esc(p.noTelepon||'-')}</span>`;
+    if(p.infoTambahan) s+=`<b>Info</b><span>${esc(p.infoTambahan)}</span>`;
+  }
+  if(p.deptHeadName) s+=`<b>Dept Head</b><span>${esc(p.deptHeadName)}${p.remarkDeptHead?' — '+esc(p.remarkDeptHead):''}</span>`;
+  if(p.namaHR) s+=`<b>HRD</b><span>${esc(p.namaHR)}${p.remarkHR?' — '+esc(p.remarkHR):''}</span>`;
+  s+='</div>';
+  return s;
+}
+
+/* ====== PERMIT SAYA ====== */
+function tsSec(ts){ return (ts&&ts.seconds)||(ts&&ts.toDate?Math.floor(ts.toDate().getTime()/1000):0)||0; }
+async function loadMine(){
+  const box=$('mineList');box.innerHTML='<div class="empty">Memuat…</div>';
+  try{
+    // hanya where email== (single-field, tanpa composite index); urut di JS
+    const snap=await db.collection('permits').where('email','==',ME.email).get();
+    let arr=snap.docs.map(d=>({id:d.id,...d.data()}));
+    arr.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+    if(!arr.length){ box.innerHTML='<div class="empty">Belum ada pengajuan.</div>'; return; }
+    box.innerHTML=arr.slice(0,80).map(p=>`
+      <div class="pcard">
+        <div class="top">
+          <div><div class="nm">${typePill(p.typePermit)} ${esc(p.reason)}</div>
+            <div class="meta">${fmtTs(p.createdAt)}${p.arsip?' · arsip':''}</div></div>
+          <div>${statusPill(p.status)}</div>
+        </div>
+        ${detailKv(p)}
+        ${flow(p)}
+      </div>`).join('');
+  }catch(e){ box.innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+}
+
+/* ====== PERSETUJUAN (HOD / HRD) ====== */
+async function fetchPending(){
+  // Ambil permit AKTIF (bukan arsip) yang perlu tindakan user ini.
+  // Query dibuat single-field agar TIDAK perlu composite index.
+  const out=[]; const seen={};
+  const push=p=>{ if(!seen[p.id]){ seen[p.id]=1; out.push(p); } };
+
+  // Dept Head: hanya permit departemennya (email tercatat di deptHeadEmails)
+  if(ME.headOf.length){
+    const s=await db.collection('permits')
+      .where('deptHeadEmails','array-contains',ME.email).get();
+    s.docs.forEach(d=>{ const p={id:d.id,...d.data()};
+      if(!p.arsip && p.status==='PENDING_HOD') push(p); });
+  }
+  // HRD: hotel-wide — semua yang menunggu HRD, plus yang masih di HOD (untuk bypass)
+  if(ME.isHRD){
+    const s=await db.collection('permits')
+      .where('status','in',['PENDING_HRD','PENDING_HOD']).get();
+    s.docs.forEach(d=>{ const p={id:d.id,...d.data()};
+      if(!p.arsip) push(p); });
+  }
+  out.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+  return out;
+}
+async function refreshApprovalCount(){
+  try{ const list=await fetchPending();
+    const badge=$('navBadge');
+    if(badge){ if(list.length){badge.textContent=list.length;badge.classList.remove('hide');}else badge.classList.add('hide'); }
+  }catch(e){}
+}
+async function loadApprove(){
+  const box=$('approveList');box.innerHTML='<div class="empty">Memuat…</div>';
+  $('apNote').textContent = ME.isHRD
+    ? 'Sebagai HRD Anda bisa menyetujui tahap akhir, atau bypass langsung permit yang masih menunggu Dept Head.'
+    : 'Sebagai Dept Head Anda menyetujui tahap pertama. Setelah itu HRD yang menyelesaikan.';
+  try{
+    const list=await fetchPending();
+    $('apCount').textContent=list.length+' menunggu';
+    if(!list.length){ box.innerHTML='<div class="empty">Tidak ada yang menunggu persetujuan Anda. 🎉</div>'; return; }
+    box.innerHTML=list.map(p=>{
+      const canHod = p.status==='PENDING_HOD' && (ME.headOf.length && p.deptHeadEmails.includes(ME.email));
+      const canHr  = (p.status==='PENDING_HRD') && ME.isHRD;
+      const canBypass = p.status==='PENDING_HOD' && ME.isHRD;
+      let acts='';
+      if(canHod) acts+=`<button class="btn ok mini" data-act="hod" data-id="${p.id}">Setujui (Dept Head)</button>`;
+      if(canHr)  acts+=`<button class="btn ok mini" data-act="hr" data-id="${p.id}">Setujui (HRD)</button>`;
+      if(canBypass) acts+=`<button class="btn primary mini" data-act="bypass" data-id="${p.id}">Bypass & Setujui (HRD)</button>`;
+      acts+=`<button class="btn danger mini" data-act="reject" data-id="${p.id}">Tolak</button>`;
+      return `<div class="pcard">
+        <div class="top">
+          <div><div class="nm">${typePill(p.typePermit)} ${esc(p.employeeName)}</div>
+            <div class="meta">${esc(p.department)} · ${fmtTs(p.createdAt)}</div></div>
+          <div>${statusPill(p.status)}</div>
+        </div>
+        ${detailKv(p)}
+        <div class="acts">${acts}</div>
+      </div>`;
+    }).join('');
+    box.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>doApprove(b.dataset.act,b.dataset.id,b));
+  }catch(e){ box.innerHTML=`<div class="empty">${esc(e.message)}<br><span style="font-size:12px">Jika ini soal index, buka link di console Firebase untuk membuat index.</span></div>`; }
+}
+
+async function doApprove(act,id,btn){
+  let remark='';
+  if(act==='reject'){ remark=prompt('Alasan penolakan:'); if(remark===null) return; if(!remark.trim()) return toast('Alasan penolakan wajib diisi.',true); }
+  else if(act==='hod'||act==='bypass'){ const r=prompt('Catatan (opsional):'); if(r===null) return; remark=r; }
+  else { const r=prompt('Catatan HRD (opsional):'); if(r===null) return; remark=r; }
+  btn.disabled=true;
+  const ref=db.collection('permits').doc(id);
+  try{
+    if(act==='reject'){
+      await ref.update({ status:'REJECTED',
+        rejectedBy:ME.name, rejectedEmail:ME.email, rejectedRemark:remark, rejectedAt:FV.serverTimestamp() });
+      await audit('PERMIT_DITOLAK', id, remark);
+      toast('Permit ditolak.');
+    } else if(act==='hod'){
+      await ref.update({ status:'PENDING_HRD', approvalDeptHead:'APPROVED',
+        deptHeadName:ME.name, deptHeadEmail:ME.email, remarkDeptHead:remark, deptHeadAt:FV.serverTimestamp() });
+      await audit('PERMIT_ACC_DEPTHEAD', id, remark);
+      toast('Disetujui. Diteruskan ke HRD.');
+    } else if(act==='hr'){
+      await ref.update({ status:'APPROVED', approvalHR:'APPROVED',
+        namaHR:ME.name, hrEmail:ME.email, remarkHR:remark, hrAt:FV.serverTimestamp(), approvedBy:ME.name });
+      await audit('PERMIT_ACC_HRD', id, remark);
+      toast('Permit disetujui penuh.');
+    } else if(act==='bypass'){
+      await ref.update({ status:'APPROVED', bypass:true,
+        approvalDeptHead:'BYPASS', deptHeadName:'(bypass HRD)', deptHeadAt:FV.serverTimestamp(),
+        approvalHR:'APPROVED', namaHR:ME.name, hrEmail:ME.email, remarkHR:remark, hrAt:FV.serverTimestamp(), approvedBy:ME.name });
+      await audit('PERMIT_BYPASS_HRD', id, remark);
+      toast('Bypass & disetujui.');
+    }
+    loadApprove(); refreshApprovalCount();
+  }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
+}
+
+/* ====== SEMUA (HRD/admin) ====== */
+let ALL=[];
+async function loadAll(){
+  const t=$('tblAll');t.innerHTML='<tr><td class="empty">Memuat…</td></tr>';
+  try{
+    let q=db.collection('permits').orderBy('createdAt','desc').limit(500);
+    const snap=await q.get();
+    ALL=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAll();
+  }catch(e){ t.innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+function renderAll(){
+  const from=$('fFrom').value, to=$('fTo').value, st=$('fStat').value, q=$('fQ').value.trim().toUpperCase();
+  const rows=ALL.filter(p=>{
+    if(st&&p.status!==st) return false;
+    if(q){ const hay=(p.employeeName+' '+p.department+' '+p.reason).toUpperCase(); if(!hay.includes(q)) return false; }
+    if(from||to){ const d=p.createdAt&&p.createdAt.toDate?p.createdAt.toDate():null; if(!d) return true;
+      if(from&&d<new Date(from+'T00:00:00')) return false;
+      if(to&&d>new Date(to+'T23:59:59')) return false; }
+    return true;
+  });
+  const t=$('tblAll');
+  t.innerHTML=`<thead><tr><th>Waktu</th><th>Nama</th><th>Dept</th><th>Jenis</th><th>Alasan</th><th>Status</th><th>Dept Head</th><th>HRD</th></tr></thead><tbody>`+
+    (rows.length?rows.map(p=>`<tr>
+      <td class="mono" style="font-size:12px;white-space:nowrap">${fmtTs(p.createdAt)}</td>
+      <td>${esc(p.employeeName)}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(p.department)}</td>
+      <td>${typePill(p.typePermit)}</td>
+      <td style="max-width:200px">${esc(p.reason)}</td>
+      <td>${statusPill(p.status)}</td>
+      <td style="font-size:12px">${esc(p.deptHeadName||(p.approvalDeptHead==='SKIP'?'—':''))}</td>
+      <td style="font-size:12px">${esc(p.namaHR||'')}</td>
+    </tr>`).join('')
+    :'<tr><td class="empty" colspan="8">Tidak ada data untuk filter ini.</td></tr>')+'</tbody>';
+}
+$('btnFilter').onclick=renderAll;
+$('btnCsv').onclick=()=>{
+  const from=$('fFrom').value,to=$('fTo').value,st=$('fStat').value,q=$('fQ').value.trim().toUpperCase();
+  const rows=ALL.filter(p=>{ if(st&&p.status!==st)return false;
+    if(q){const hay=(p.employeeName+' '+p.department+' '+p.reason).toUpperCase();if(!hay.includes(q))return false;} return true;});
+  if(!rows.length) return toast('Tidak ada data.',true);
+  const head=['Waktu','Nama','Email','Dept','Jenis','Alasan','JamKeluar','Durasi','Status','DeptHead','HRD','Transport','Tujuan'];
+  const qc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const csv=[head.join(',')].concat(rows.map(p=>[fmtTs(p.createdAt),p.employeeName,p.email,p.department,p.typePermit,p.reason,p.timeOut,p.durationAllowed,p.status,p.deptHeadName,p.namaHR,p.needTransport==='YES'?p.jenisRequest:'',p.lokasiTujuan].map(qc).join(','))).join('\n');
+  const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='exit-permit-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);
+};
+
+/* ====== MANAGE KARYAWAN (admin) ====== */
+let EMP=[];
+async function loadEmp(){
+  const t=$('tblEmp');t.innerHTML='<tr><td class="empty">Memuat…</td></tr>';
+  try{
+    const snap=await db.collection('users').orderBy('nama').get();
+    EMP=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderEmp();
+  }catch(e){ t.innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+}
+function renderEmp(){
+  const q=$('qEmp').value.trim().toUpperCase();
+  const list=EMP.filter(u=>!q||(u.nama||'').toUpperCase().includes(q)||(u.id||'').toUpperCase().includes(q)||(u.dept||'').toUpperCase().includes(q));
+  const t=$('tblEmp');
+  t.innerHTML=`<thead><tr><th>Nama</th><th>Email</th><th>Departemen</th><th>Jabatan</th><th>Level</th><th>Status</th><th></th></tr></thead><tbody>`+
+    (list.length?list.slice(0,400).map(u=>`<tr>
+      <td>${esc(u.nama)}</td>
+      <td style="font-size:12px">${esc(u.id)}</td>
+      <td style="font-size:12px">${esc(u.dept)}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(u.jabatan||'')}</td>
+      <td style="font-size:12px">${esc(u.level||'')}</td>
+      <td>${u.aktif===false?'<span class="pill no">Nonaktif</span>':'<span class="pill ok">Aktif</span>'}</td>
+      <td><button class="btn mini" data-edit="${esc(u.id)}">Edit</button></td>
+    </tr>`).join('')
+    :'<tr><td class="empty" colspan="7">Tidak ada karyawan cocok.</td></tr>')+'</tbody>';
+  t.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editEmp(b.dataset.edit));
+}
+$('qEmp').oninput=renderEmp;
+
+const DEPTS=['A&G','FINANCE & ACCOUNTING','ENGINEERING','FRONT OFFICE','FOOD & BEVERAGE SERVICE','FOOD & BEVERAGE PRODUCT','HOUSEKEEPING','HUMAN RESOURCE','SALES & MARKETING','EAGLE GOLF','SECURITY','TRAINEE','EDR','MANULIFE'];
+function modal(html){ const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="inner">${html}</div>`;m.onclick=e=>{if(e.target===m)m.remove();};document.body.appendChild(m);return m; }
+
+function editEmp(email){
+  const u=EMP.find(x=>x.id===email); if(!u)return;
+  const opts=DEPTS.map(d=>`<option ${d===u.dept?'selected':''}>${d}</option>`).join('');
+  const m=modal(`
+    <h2 style="font-size:20px;text-transform:uppercase;margin-bottom:12px">Edit karyawan</h2>
+    <div class="field"><label>Nama</label><input id="eNama" value="${esc(u.nama||'')}"></div>
+    <div class="field"><label>Email <span style="color:var(--brass);text-transform:none;letter-spacing:0">(bisa diperbaiki bila salah)</span></label>
+      <input id="eEmail" value="${esc(u.id)}" placeholder="nama@astoncirebon.com"></div>
+    <div class="field"><label>Departemen</label><select id="eDept">${opts}</select></div>
+    <div class="grid2">
+      <div class="field"><label>Jabatan</label><input id="eJab" value="${esc(u.jabatan||'')}"></div>
+      <div class="field"><label>Level</label>
+        <select id="eLvl">${['Staff','HOD','Trainee'].map(l=>`<option ${l===u.level?'selected':''}>${l}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="eStat"><option value="true" ${u.aktif!==false?'selected':''}>Aktif</option><option value="false" ${u.aktif===false?'selected':''}>Nonaktif</option></select></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn mini" id="eCancel">Batal</button>
+      <button class="btn primary mini" id="eSave">Simpan</button>
+    </div>`);
+  m.querySelector('#eCancel').onclick=()=>m.remove();
+  m.querySelector('#eSave').onclick=async()=>{
+    const btn=m.querySelector('#eSave');
+    const newEmail=(m.querySelector('#eEmail').value||'').trim().toLowerCase();
+    const data={
+      nama:m.querySelector('#eNama').value.trim().toUpperCase(),
+      dept:m.querySelector('#eDept').value,
+      jabatan:m.querySelector('#eJab').value.trim().toUpperCase(),
+      level:m.querySelector('#eLvl').value,
+      aktif:m.querySelector('#eStat').value==='true'
+    };
+    // validasi email
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) return toast('Format email tidak valid.',true);
+    btn.disabled=true;btn.textContent='Menyimpan…';
+    try{
+      if(newEmail===email){
+        // email tetap → update biasa
+        await db.collection('users').doc(email).update(data);
+        await audit('KARYAWAN_DIUBAH', email, 'dept/jabatan/level/status');
+        toast('Karyawan diperbarui.');
+      } else {
+        // email berubah → pindahkan dokumen (ID = email) + buat akun Auth baru
+        const old=EMP.find(x=>x.id===email)||{};
+        const merged={ email:newEmail, nama:data.nama, dept:data.dept, jabatan:data.jabatan,
+          level:data.level, aktif:data.aktif,
+          role: old.role||'STAFF', offDate: old.offDate||null, status: old.status||'Active', photo: old.photo||'' };
+        // 1) buat akun Auth utk email baru (instance kedua supaya admin tak logout)
+        const authRes=await buatAkunAuth(newEmail);
+        // 2) dokumen users baru
+        await db.collection('users').doc(newEmail).set(merged,{merge:true});
+        // 3) hapus dokumen lama
+        await db.collection('users').doc(email).delete();
+        await audit('KARYAWAN_GANTI_EMAIL', email, '→ '+newEmail+' ('+authRes+')');
+        toast('Email diperbaiki: '+newEmail+(authRes==='baru'?' · akun login dibuat (pass Aston2026!)':' · akun sudah ada'));
+      }
+      m.remove();loadEmp();
+    }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false;btn.textContent='Simpan'; }
+  };
+}
+
+/* Buat akun Auth memakai instance Firebase kedua agar sesi admin tidak tergeser.
+   Return 'baru' | 'ada'. */
+async function buatAkunAuth(email){
+  const PASS_AWAL='Aston2026!';
+  let sec;
+  try{
+    sec=firebase.initializeApp(window.FIREBASE_CONFIG,'sec-'+Date.now());
+    await sec.auth().createUserWithEmailAndPassword(email, PASS_AWAL);
+    await sec.auth().signOut();
+    return 'baru';
+  }catch(e){
+    if(e.code==='auth/email-already-in-use') return 'ada';
+    throw e;
+  }finally{ if(sec) try{ await sec.delete(); }catch(_){} }
+}
+
+$('btnAddEmp').onclick=()=>{
+  const opts=DEPTS.map(d=>`<option>${d}</option>`).join('');
+  const m=modal(`
+    <h2 style="font-size:20px;text-transform:uppercase;margin-bottom:6px">Tambah karyawan</h2>
+    <p class="note">Ini membuat data karyawan di database. Untuk bisa login, akun juga perlu dibuat di Authentication (Firebase Console → Authentication → Add user, atau lewat skrip).</p>
+    <div class="field"><label>Nama</label><input id="nNama"></div>
+    <div class="field"><label>Email</label><input id="nEmail" type="email" placeholder="nama@astoncirebon.com"></div>
+    <div class="field"><label>Departemen</label><select id="nDept">${opts}</select></div>
+    <div class="grid2">
+      <div class="field"><label>Jabatan</label><input id="nJab"></div>
+      <div class="field"><label>Level</label><select id="nLvl"><option>Staff</option><option>HOD</option><option>Trainee</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn mini" id="nCancel">Batal</button>
+      <button class="btn primary mini" id="nSave">Simpan</button>
+    </div>`);
+  m.querySelector('#nCancel').onclick=()=>m.remove();
+  m.querySelector('#nSave').onclick=async()=>{
+    const email=m.querySelector('#nEmail').value.trim().toLowerCase();
+    const nama=m.querySelector('#nNama').value.trim().toUpperCase();
+    if(!email||!nama) return toast('Nama & email wajib.',true);
+    try{
+      await db.collection('users').doc(email).set({
+        email,nama,dept:m.querySelector('#nDept').value,
+        jabatan:m.querySelector('#nJab').value.trim().toUpperCase(),
+        level:m.querySelector('#nLvl').value,
+        role:'STAFF',aktif:true,offDate:null,status:'Active',photo:''
+      },{merge:true});
+      await audit('KARYAWAN_DITAMBAH', email, nama);
+      toast('Karyawan ditambahkan.');m.remove();loadEmp();
+    }catch(e){ toast('Gagal: '+e.message,true); }
+  };
+};
+
+/* ====== ATUR DEPT HEAD / HRD ====== */
+$('btnHeads').onclick=()=>{
+  const rows=DEPTS.map(d=>`
+    <div class="field"><label>${esc(d)}</label>
+      <input data-dept="${esc(d)}" value="${esc((CFG.deptHeads&&CFG.deptHeads[d]||[]).join(', '))}" placeholder="email1@..., email2@..."></div>`).join('');
+  const m=modal(`
+    <h2 style="font-size:20px;text-transform:uppercase;margin-bottom:6px">Dept Head & HRD</h2>
+    <p class="note">Pisahkan beberapa email dengan koma. Kosongkan bila departemen tidak punya kepala (permit-nya langsung ke HRD).</p>
+    <div class="field"><label style="color:var(--blue)">HRD (bisa bypass)</label>
+      <input id="hHRD" value="${esc((CFG.hrd||[]).join(', '))}" placeholder="hrm@..., hra@..."></div>
+    <div style="height:1px;background:var(--line);margin:10px 0"></div>
+    ${rows}
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn mini" id="hCancel">Batal</button>
+      <button class="btn primary mini" id="hSave">Simpan</button>
+    </div>`);
+  m.querySelector('#hCancel').onclick=()=>m.remove();
+  m.querySelector('#hSave').onclick=async()=>{
+    const parse=v=>v.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+    const deptHeads={};
+    m.querySelectorAll('[data-dept]').forEach(inp=>{const arr=parse(inp.value);if(arr.length)deptHeads[inp.dataset.dept]=arr;});
+    const hrd=parse(m.querySelector('#hHRD').value);
+    try{
+      await db.collection('config').doc('permit').set({hrd,deptHeads},{merge:false});
+      CFG={hrd,deptHeads};
+      await audit('CONFIG_DEPTHEAD_DIUBAH','config/permit','HRD & dept head diperbarui');
+      toast('Pengaturan disimpan.');m.remove();
+    }catch(e){ toast('Gagal: '+e.message,true); }
+  };
+};
+
+/* ====== LIHAT PASSWORD ====== */
+function togglePw(btn,id){ const el=$(id); if(!el)return;
+  const show=el.type==='password'; el.type=show?'text':'password'; btn.textContent=show?'Tutup':'Lihat'; }
+
+/* ====== GANTI PASSWORD ====== */
+$('btnPass').onclick=async()=>{
+  const oldp=$('pOld').value, np=$('pNew').value, np2=$('pNew2').value;
+  if(!np||np.length<6) return toast('Password baru minimal 6 karakter.',true);
+  if(np!==np2) return toast('Ulangi password tidak sama. Periksa lagi.',true);
+  const b=$('btnPass');b.disabled=true;b.textContent='Menyimpan…';
+  try{
+    const cred=firebase.auth.EmailAuthProvider.credential(ME.email, oldp);
+    await auth.currentUser.reauthenticateWithCredential(cred);
+    await auth.currentUser.updatePassword(np);
+    $('pOld').value='';$('pNew').value='';$('pNew2').value='';
+    toast('Password berhasil diganti.');
+  }catch(e){ toast(e.code&&e.code.includes('wrong-password')?'Password lama salah.':mapErr(e),true); }
+  finally{ b.disabled=false;b.textContent='Simpan password'; }
+};
+
+/* ====== AUDIT ====== */
+async function audit(aksi,target,detail){
+  try{ await db.collection('audit').add({ ts:FV.serverTimestamp(),
+    aktor:ME.name, email:ME.email, role:ME.isHRD?'HRD':(ME.headOf&&ME.headOf.length?'DEPTHEAD':ME.role),
+    aksi, target:target||'', detail:detail||'' }); }catch(e){}
+}
 </script>
 </body>
 </html>
