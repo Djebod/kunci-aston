@@ -98,6 +98,15 @@
     background:var(--slate-2);border:1px solid var(--brass);border-radius:8px;padding:12px 18px;font-size:13px;max-width:90vw}
   .toast.err{border-color:var(--red)}
   .spin{display:grid;place-items:center;min-height:100dvh;color:var(--muted)}
+  .hbtn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:9px;
+    font:600 12.5px Inter,sans-serif;letter-spacing:.02em;text-decoration:none;cursor:pointer;
+    border:1px solid transparent;transition:.14s;line-height:1;white-space:nowrap}
+  .hbtn svg{flex:none}
+  .hbtn.menu{color:#E8A24C;background:rgba(232,145,44,.12);border-color:rgba(232,145,44,.38)}
+  .hbtn.menu:hover{background:rgba(232,145,44,.20);border-color:rgba(232,145,44,.70);transform:translateY(-1px)}
+  .hbtn.exit{color:#E8726E;background:rgba(216,84,79,.12);border-color:rgba(216,84,79,.36);margin-left:8px}
+  .hbtn.exit:hover{background:rgba(216,84,79,.20);border-color:rgba(216,84,79,.70);transform:translateY(-1px)}
+  @media(max-width:560px){.hbtn span{display:none}.hbtn{padding:8px 10px}}
 </style>
 </head>
 <body>
@@ -129,7 +138,9 @@
   <div class="topbar">
     <img src="logo-aston-white.png" alt="Aston Cirebon" class="logo" onerror="this.style.display='none'">
     <div class="who"><b id="uName">—</b><span id="uMeta">—</span></div>
-    <button class="btn mini" id="btnLogout" style="margin-left:12px;background:#D8544F;border-color:#D8544F;color:#111;font-weight:700">Keluar</button>
+    <button class="hbtn exit" id="btnLogout" title="Keluar" style="margin-left:12px">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+      <span>Keluar</span></button>
   </div>
 
   <div class="hello" id="hello">Halo</div>
