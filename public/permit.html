@@ -333,6 +333,36 @@ function toast(m,e){clearTimeout(toastT);document.querySelectorAll('.toast').for
 
 let ME=null, CFG={hrd:[],deptHeads:{}}, TYPE='Exit Permit', TRANSPORT='NO';
 
+/* ====== NOTIFIKASI EMAIL (via Apps Script relay) ======
+   Tempel URL Web App Apps Script (email-permit.gs) di bawah.
+   Kalau dibiarkan 'GANTI_...', email dilewati diam-diam (aplikasi tetap jalan). */
+const EMAIL_API = 'https://script.google.com/macros/s/AKfycby90LK9DJD9KAMV4pOejwzSirIhN1HxRK0V6VJxFwO6bqRJxadR_ngYvXRpqfb6mQHh/execL';
+function kirimEmail(type, p, extra){
+  try{
+    if(!EMAIL_API || EMAIL_API.indexOf('GANTI_')===0) return; // belum diisi → lewati
+    const payload = Object.assign({
+      type,
+      employeeName: p.employeeName||'',
+      email: p.email||'',
+      department: p.department||'',
+      typePermit: p.typePermit||'Exit Permit',
+      reason: p.reason||'',
+      timeOut: p.timeOut||'',
+      durationAllowed: p.durationAllowed||'',
+      needTransport: p.needTransport||'NO',
+      jenisRequest: p.jenisRequest||'',
+      tanggalTransport: p.tanggalTransport||'',
+      jamTransport: p.jamTransport||'',
+      lokasiTujuan: p.lokasiTujuan||'',
+      appUrl: location.origin + location.pathname
+    }, extra||{});
+    // fire-and-forget; text/plain agar tidak memicu CORS preflight
+    fetch(EMAIL_API, { method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload) }).catch(()=>{});
+  }catch(e){}
+}
+
 /* ====== AUTH ====== */
 $('btnLogin').onclick=doLogin;
 $('lPass').onkeydown=e=>{if(e.key==='Enter')doLogin();};
@@ -450,6 +480,8 @@ $('btnSubmit').onclick=async()=>{
     };
     await db.collection('permits').add(doc);
     await audit('PERMIT_DIAJUKAN', ME.email, TYPE+' · '+reason);
+    // Notifikasi: ada request masuk → email ke Dept Head (atau HRD bila dept tak punya kepala)
+    kirimEmail('REQUEST', doc, { to: heads.length ? heads : (CFG.hrd||[]) });
     toast('Pengajuan terkirim. Menunggu '+(heads.length?'Dept Head':'HRD')+'.');
     $('fReason').value='';$('fLokasi').value='';$('fInfo').value='';
     show('tMine');
@@ -546,6 +578,7 @@ async function fetchPending(){
   out.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
   return out;
 }
+let APPROVE_LIST=[];
 async function refreshApprovalCount(){
   try{ const list=await fetchPending();
     const badge=$('navBadge');
@@ -559,6 +592,7 @@ async function loadApprove(){
     : 'Sebagai Dept Head Anda menyetujui tahap pertama. Setelah itu HRD yang menyelesaikan.';
   try{
     const list=await fetchPending();
+    APPROVE_LIST=list;
     $('apCount').textContent=list.length+' menunggu';
     if(!list.length){ box.innerHTML='<div class="empty">Tidak ada yang menunggu persetujuan Anda. 🎉</div>'; return; }
     box.innerHTML=list.map(p=>{
@@ -591,27 +625,37 @@ async function doApprove(act,id,btn){
   else { const r=prompt('Catatan HRD (opsional):'); if(r===null) return; remark=r; }
   btn.disabled=true;
   const ref=db.collection('permits').doc(id);
+  const P=(APPROVE_LIST||[]).find(x=>x.id===id)||{};   // data permit untuk email
   try{
     if(act==='reject'){
+      const rejLevel = (P.status==='PENDING_HRD') ? 'HRD' : 'HOD';
       await ref.update({ status:'REJECTED',
         rejectedBy:ME.name, rejectedEmail:ME.email, rejectedRemark:remark, rejectedAt:FV.serverTimestamp() });
       await audit('PERMIT_DITOLAK', id, remark);
+      // Dept Head / HRD menolak → email penolakan ke staff
+      kirimEmail('REJECTED', P, { to:[P.email], approverName:ME.name, remark, rejectedLevel:rejLevel });
       toast('Permit ditolak.');
     } else if(act==='hod'){
       await ref.update({ status:'PENDING_HRD', approvalDeptHead:'APPROVED',
         deptHeadName:ME.name, deptHeadEmail:ME.email, remarkDeptHead:remark, deptHeadAt:FV.serverTimestamp() });
       await audit('PERMIT_ACC_DEPTHEAD', id, remark);
+      // Dept Head approve → email ke HRD
+      kirimEmail('HOD_APPROVED', P, { to:(CFG.hrd||[]), approverName:ME.name, remark });
       toast('Disetujui. Diteruskan ke HRD.');
     } else if(act==='hr'){
       await ref.update({ status:'APPROVED', approvalHR:'APPROVED',
         namaHR:ME.name, hrEmail:ME.email, remarkHR:remark, hrAt:FV.serverTimestamp(), approvedBy:ME.name });
       await audit('PERMIT_ACC_HRD', id, remark);
+      // HRD approve → email ke staff
+      kirimEmail('APPROVED', P, { to:[P.email], approverName:ME.name, remark });
       toast('Permit disetujui penuh.');
     } else if(act==='bypass'){
       await ref.update({ status:'APPROVED', bypass:true,
         approvalDeptHead:'BYPASS', deptHeadName:'(bypass HRD)', deptHeadAt:FV.serverTimestamp(),
         approvalHR:'APPROVED', namaHR:ME.name, hrEmail:ME.email, remarkHR:remark, hrAt:FV.serverTimestamp(), approvedBy:ME.name });
       await audit('PERMIT_BYPASS_HRD', id, remark);
+      // HRD bypass (approve langsung) → email ke staff
+      kirimEmail('APPROVED', P, { to:[P.email], approverName:ME.name, remark, bypass:true });
       toast('Bypass & disetujui.');
     }
     loadApprove(); refreshApprovalCount();
