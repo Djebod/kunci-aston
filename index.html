@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#12181F">
-<title>Aston Cirebon — Staff Portal</title>
+<title>Aston Cirebon — Portal Staff</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -45,6 +45,11 @@
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .btn.mini{padding:8px 12px;font-size:12px}
   a.link{color:var(--brass);font-size:12px;text-decoration:none}
+  .pwwrap{position:relative}
+  .pwwrap input{padding-right:64px}
+  .pweye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;
+    color:var(--brass);font:600 11px Inter,sans-serif;cursor:pointer;padding:6px 8px;text-transform:uppercase;letter-spacing:.05em}
+  .pweye:hover{color:#DBAE49}
 
   /* ===== HUB ===== */
   .topbar{display:flex;align-items:center;gap:12px;padding:18px 0 8px}
@@ -96,7 +101,8 @@
       <div class="field"><label for="lEmail">Email</label>
         <input id="lEmail" type="email" autocomplete="username" placeholder="nama@astoncirebon.com"></div>
       <div class="field"><label for="lPass">Password</label>
-        <input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+        <div class="pwwrap"><input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pweye" onclick="togglePw(this,'lPass')">Lihat</button></div></div>
       <button class="btn primary" style="width:100%" id="btnLogin">Masuk</button>
       <p id="lErr" class="hide" style="color:var(--red);font-size:13px;margin:12px 0 0"></p>
       <p style="margin:12px 0 0;text-align:center"><a href="#" id="lForgot" class="link">Lupa password?</a></p>
@@ -169,6 +175,8 @@ function mapErr(e){const c=e.code||'';
   return e.message||'Gagal masuk.';}
 
 function view(v){ ['vBoot','vLogin','vHub'].forEach(id=>$(id).classList.toggle('hide',id!==v)); }
+function togglePw(btn,id){ const el=$(id); if(!el)return;
+  const show=el.type==='password'; el.type=show?'text':'password'; btn.textContent=show?'Tutup':'Lihat'; }
 
 /* login */
 $('btnLogin').onclick=doLogin;

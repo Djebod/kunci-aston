@@ -96,6 +96,11 @@
   label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;
     letter-spacing:.1em;margin:0 0 6px;font-weight:600}
   .field{margin-bottom:14px}
+  .pwwrap{position:relative}
+  .pwwrap input{padding-right:64px}
+  .pweye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;
+    color:var(--brass);font:600 11px Inter,sans-serif;cursor:pointer;padding:6px 8px;text-transform:uppercase;letter-spacing:.05em}
+  .pweye:hover{color:#DBAE49}
   .row{display:flex;gap:10px;flex-wrap:wrap}
   .row > *{flex:1;min-width:130px}
 
@@ -162,7 +167,8 @@
       <div class="field"><label for="lEmail">Email</label>
         <input id="lEmail" type="email" autocomplete="username" placeholder="nama@astoncirebon.com"></div>
       <div class="field"><label for="lPass">Password</label>
-        <input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+        <div class="pwwrap"><input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pweye" onclick="togglePw(this,'lPass')">Lihat</button></div></div>
       <button class="btn primary" style="width:100%" id="btnLogin">Masuk</button>
       <p id="lErr" class="hide" style="color:var(--red);font-size:13px;margin:12px 0 0"></p>
     </div>
@@ -293,8 +299,15 @@
     <section id="tAkun" class="tab hide">
       <div class="sec"><h2>Ganti password</h2><div class="rule"></div></div>
       <div class="card" style="max-width:400px">
-        <div class="field"><label for="pOld">Password lama</label><input id="pOld" type="password"></div>
-        <div class="field"><label for="pNew">Password baru</label><input id="pNew" type="password" placeholder="Minimal 6 karakter"></div>
+        <div class="field"><label for="pOld">Password lama</label>
+          <div class="pwwrap"><input id="pOld" type="password">
+            <button type="button" class="pweye" onclick="togglePw(this,'pOld')">Lihat</button></div></div>
+        <div class="field"><label for="pNew">Password baru</label>
+          <div class="pwwrap"><input id="pNew" type="password" placeholder="Minimal 6 karakter">
+            <button type="button" class="pweye" onclick="togglePw(this,'pNew')">Lihat</button></div></div>
+        <div class="field"><label for="pNew2">Ulangi password baru</label>
+          <div class="pwwrap"><input id="pNew2" type="password" placeholder="Ketik ulang password baru">
+            <button type="button" class="pweye" onclick="togglePw(this,'pNew2')">Lihat</button></div></div>
         <button class="btn primary" id="btnPass">Simpan password</button>
       </div>
     </section>
@@ -1141,14 +1154,19 @@ $('btnAuditCsv').onclick = () => {
 /* ═══════ GANTI PASSWORD ═══════ */
 $('btnPass').onclick = async () => {
   const b = $('btnPass');
+  const np = $('pNew').value, np2 = $('pNew2').value;
+  if(!np || np.length < 6) return toast('Password baru minimal 6 karakter.', true);
+  if(np !== np2) return toast('Ulangi password tidak sama. Periksa lagi.', true);
   b.disabled = true; b.textContent = 'Menyimpan…';
   try {
-    await call('changePassword', { oldPassword: $('pOld').value, newPassword: $('pNew').value });
-    $('pOld').value = ''; $('pNew').value = '';
+    await call('changePassword', { oldPassword: $('pOld').value, newPassword: np });
+    $('pOld').value = ''; $('pNew').value = ''; $('pNew2').value = '';
     toast('Password berhasil diganti.');
   } catch (e) { toast(e.message, true); }
   finally { b.disabled = false; b.textContent = 'Simpan password'; }
 };
+function togglePw(btn,id){ const el=$(id); if(!el)return;
+  const show=el.type==='password'; el.type=show?'text':'password'; btn.textContent=show?'Tutup':'Lihat'; }
 </script>
 </body>
 </html>
