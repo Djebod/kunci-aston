@@ -1,0 +1,16 @@
+﻿# rahasia & data — JANGAN di-push
+serviceAccountKey.json
+*-export.json
+employees.json
+permits-lama.json
+impor-karyawan.js
+impor-permit-lama.js
+impor-ke-firestore.js
+reset-password.js
+ekspor-sheets.gs
+
+# dependensi & sampah
+node_modules/
+.firebase/
+*.log
+.DS_Store

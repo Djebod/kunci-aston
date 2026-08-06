@@ -1,0 +1,101 @@
+rules_version = '2';
+
+// ============================================================
+//  ASTON CIREBON — Firestore Security Rules
+//  Mencakup 2 modul: KEY MANAGEMENT + EXIT PERMIT
+//  Database karyawan (users) dipakai bersama kedua modul.
+//
+//  Model:
+//   users/{emailLower} : nama,email,dept,role,aktif,offDate,jabatan,level,status,photo
+//   keys/{keyId}       : nama,kode,status,pemegang,email,dept,sejak,loanId
+//   loans/{autoId}     : ts,nama,dept,status,keys[],by,byEmail,jenis,catatan,loanId
+//   audit/{autoId}     : ts,aktor,email,role,aksi,target,detail
+//   config/permit      : hrd[], deptHeads{dept:[email,...]}
+//   permits/{autoId}   : ...data izin..., deptHeadEmails[], status, approval*
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helper umum ----------
+    function signedIn() { return request.auth != null; }
+    function myEmail()  { return request.auth.token.email.lower(); }
+    function myDoc()    { return get(/databases/$(database)/documents/users/$(myEmail())).data; }
+    function myExists() { return exists(/databases/$(database)/documents/users/$(myEmail())); }
+    function active()   { return signedIn() && myExists() && myDoc().aktif == true; }
+    function role()     { return myDoc().role; }
+    function isAdmin()  { return active() && (role() == 'ADMIN' || role() == 'SUPERADMIN'); }
+    function isSuper()  { return active() && role() == 'SUPERADMIN'; }
+
+    // ---------- helper permit ----------
+    function permitCfg() { return get(/databases/$(database)/documents/config/permit).data; }
+    function isHRD() {
+      return active() && (myEmail() in permitCfg().hrd);
+    }
+
+    // ---------- USERS (dipakai 2 modul) ----------
+    match /users/{email} {
+      // baca dokumen sendiri (cek role/dept/status). Admin & HRD baca semua
+      // (HRD & dept head perlu lihat data karyawan untuk approval).
+      allow get:  if signedIn() && (email == myEmail() || isAdmin() || isHRD());
+      allow list: if isAdmin() || isHRD();
+      // kelola karyawan (tambah/ubah dept/level/status): admin ke atas
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- CONFIG (dept heads & HRD) ----------
+    match /config/{docId} {
+      allow read:  if active();
+      allow write: if isAdmin();   // panel Manage Karyawan
+    }
+
+    // ---------- KEYS ----------
+    function onlyLoanFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['status','pemegang','email','dept','sejak','loanId']);
+    }
+    match /keys/{keyId} {
+      allow read: if active();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (active() && onlyLoanFields());
+    }
+
+    // ---------- LOANS (append-only) ----------
+    match /loans/{id} {
+      allow read: if isAdmin()
+        || (active() && (resource.data.byEmail == myEmail()
+                      || resource.data.nama == myDoc().nama));
+      allow create: if active();
+      allow update, delete: if false;
+    }
+
+    // ---------- PERMITS (Exit / Sick Permit) ----------
+    match /permits/{id} {
+      // Baca: pemilik izin, dept head yang berhak (email tercatat di
+      // deptHeadEmails saat pengajuan), HRD, atau admin.
+      allow read: if active() && (
+        resource.data.email == myEmail()
+        || (myEmail() in resource.data.deptHeadEmails)
+        || isHRD() || isAdmin()
+      );
+      // Ajukan: user aktif, hanya untuk dirinya sendiri (atau admin untuk siapa saja).
+      allow create: if active() && (
+        request.resource.data.email == myEmail() || isAdmin()
+      );
+      // Setujui/tolak: dept head yang berhak, HRD, atau admin.
+      allow update: if active() && (
+        (myEmail() in resource.data.deptHeadEmails)
+        || isHRD() || isAdmin()
+      );
+      // Tidak boleh dihapus (arsip permanen).
+      allow delete: if isSuper();
+    }
+
+    // ---------- AUDIT (append-only) ----------
+    match /audit/{id} {
+      allow read: if isSuper();
+      allow create: if active();
+      allow update, delete: if false;
+    }
+  }
+}

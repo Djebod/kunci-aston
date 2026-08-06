@@ -1,0 +1,31 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      "**/.*",
+      "**/node_modules/**",
+      "serviceAccountKey.json",
+      "*-export.json",
+      "employees.json",
+      "permits-lama.json",
+      "impor-*.js",
+      "reset-password.js",
+      "ekspor-sheets.gs",
+      "package*.json"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(png|svg|ico|webmanifest)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      }
+    ],
+    "cleanUrls": true
+  }
+}

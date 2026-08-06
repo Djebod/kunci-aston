@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12181F">
+<title>Aston Cirebon — Portal Staff</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --slate:#12181F; --slate-2:#1B242F; --line:#2B3644;
+    --brass:#C89B3C; --navy:#00205B; --paper:#EDEFF2; --muted:#8A97A6;
+    --green:#3FA96B; --red:#D8544F; --blue:#5B93D6;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:
+      radial-gradient(1100px 480px at 50% -10%, rgba(0,32,91,.55), transparent 60%),
+      var(--slate);
+    color:var(--paper);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.5;
+    min-height:100dvh;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+  h1,h2,h3{font-family:'Barlow Condensed',sans-serif;letter-spacing:.02em;margin:0}
+  .wrap{max-width:820px;margin:0 auto}
+  .hide{display:none!important}
+
+  /* ===== LOGIN ===== */
+  .login{min-height:100dvh;display:grid;place-items:center}
+  .login .box{width:100%;max-width:380px}
+  .mark{max-width:220px;max-height:92px;margin:0 auto 22px;display:block}
+  .card{background:var(--slate-2);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .field{margin-bottom:14px}
+  label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px;font-weight:600}
+  input{width:100%;background:#0D1319;border:1px solid var(--line);color:var(--paper);border-radius:8px;padding:12px;font:400 15px Inter,sans-serif}
+  input:focus{outline:2px solid var(--brass);outline-offset:-1px;border-color:transparent}
+  .btn{font:600 13px Inter,sans-serif;padding:12px 18px;border-radius:8px;border:1px solid var(--line);
+    background:var(--slate-2);color:var(--paper);cursor:pointer;transition:.12s}
+  .btn:hover:not(:disabled){border-color:var(--brass)}
+  .btn.primary{background:var(--brass);border-color:var(--brass);color:#14100A}
+  .btn.primary:hover:not(:disabled){background:#DBAE49}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.mini{padding:8px 12px;font-size:12px}
+  a.link{color:var(--brass);font-size:12px;text-decoration:none}
+
+  /* ===== HUB ===== */
+  .topbar{display:flex;align-items:center;gap:12px;padding:18px 0 8px}
+  .topbar .logo{height:40px;width:auto}
+  .topbar .who{margin-left:auto;text-align:right;line-height:1.2}
+  .topbar .who b{display:block;font-size:14px}
+  .topbar .who span{font-size:11px;color:var(--muted)}
+  .hello{margin:26px 0 4px;font-size:30px;font-weight:700;text-transform:uppercase}
+  .subhello{color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:26px}
+
+  .modules{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:620px){.modules{grid-template-columns:1fr}}
+  .mod{display:block;text-decoration:none;color:inherit;position:relative;overflow:hidden;
+    background:var(--slate-2);border:1px solid var(--line);border-radius:16px;padding:22px;
+    transition:.15s;min-height:190px}
+  .mod:hover{border-color:var(--brass);transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+  .mod .ico{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;margin-bottom:16px}
+  .mod .ico svg{width:28px;height:28px}
+  .mod.k .ico{background:rgba(200,155,60,.14)}
+  .mod.p .ico{background:rgba(91,147,214,.14)}
+  .mod h2{font-size:23px;font-weight:600;text-transform:uppercase;line-height:1.05}
+  .mod p{color:var(--muted);font-size:13px;margin:8px 0 0}
+  .mod .go{position:absolute;right:20px;bottom:18px;color:var(--brass);font-size:22px;transition:.15s}
+  .mod:hover .go{transform:translateX(4px)}
+  .mod .tagline{position:absolute;right:20px;top:22px;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted)}
+
+  .footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
+  .footer .sep{margin:0 8px;opacity:.4}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;
+    background:var(--slate-2);border:1px solid var(--brass);border-radius:8px;padding:12px 18px;font-size:13px;max-width:90vw}
+  .toast.err{border-color:var(--red)}
+  .spin{display:grid;place-items:center;min-height:100dvh;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- loading awal -->
+<div id="vBoot" class="spin">Memuat…</div>
+
+<!-- ===== LOGIN ===== -->
+<section id="vLogin" class="login hide">
+  <div class="box">
+    <img src="logo-aston-white.png" alt="Aston Cirebon" class="mark" onerror="this.style.display='none'">
+    <h1 style="font-size:24px;text-align:center;text-transform:uppercase;letter-spacing:.03em">Portal Staff</h1>
+    <p style="text-align:center;color:var(--muted);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin:8px 0 24px">Aston Cirebon Hotel</p>
+    <div class="card">
+      <div class="field"><label for="lEmail">Email</label>
+        <input id="lEmail" type="email" autocomplete="username" placeholder="nama@astoncirebon.com"></div>
+      <div class="field"><label for="lPass">Password</label>
+        <input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn primary" style="width:100%" id="btnLogin">Masuk</button>
+      <p id="lErr" class="hide" style="color:var(--red);font-size:13px;margin:12px 0 0"></p>
+      <p style="margin:12px 0 0;text-align:center"><a href="#" id="lForgot" class="link">Lupa password?</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HUB ===== -->
+<section id="vHub" class="wrap hide">
+  <div class="topbar">
+    <img src="logo-aston-white.png" alt="Aston Cirebon" class="logo" onerror="this.style.display='none'">
+    <div class="who"><b id="uName">—</b><span id="uMeta">—</span></div>
+    <button class="btn mini" id="btnLogout" style="margin-left:12px">Keluar</button>
+  </div>
+
+  <div class="hello" id="hello">Halo</div>
+  <div class="subhello">Pilih aplikasi yang ingin dibuka</div>
+
+  <div class="modules">
+    <a class="mod k" href="kunci.html">
+      <div class="ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C89B3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="4.5"/><circle cx="8" cy="8" r="1.2" fill="#C89B3C"/>
+          <line x1="11.2" y1="11.2" x2="20" y2="20"/><line x1="16" y1="16" x2="19" y2="13"/><line x1="19" y1="19" x2="22" y2="16"/>
+        </svg>
+      </div>
+      <h2>Peminjaman &amp; Pengembalian Kunci</h2>
+      <p>Pinjam, kembalikan, dan lacak kunci antar shift.</p>
+      <span class="go">→</span>
+    </a>
+
+    <a class="mod p" href="permit.html">
+      <div class="ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5B93D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+          <path d="M9 7h6M9 11h6M9 15h3"/><path d="M17 15l2 2 3-3"/>
+        </svg>
+      </div>
+      <h2>Exit Permit</h2>
+      <p>Ajukan izin keluar / sakit dan alur persetujuan.</p>
+      <span class="go">→</span>
+    </a>
+  </div>
+
+  <div class="footer">
+    <span>Aston Cirebon Hotel &amp; Convention Center</span>
+    <span class="sep">·</span>
+    <a href="#" id="hForgot2" class="link">Ganti password?</a>
+  </div>
+</section>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+firebase.initializeApp(window.FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const $ = id => document.getElementById(id);
+let toastT;
+function toast(m,e){clearTimeout(toastT);document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');el.className='toast'+(e?' err':'');el.textContent=m;document.body.appendChild(el);
+  toastT=setTimeout(()=>el.remove(),3800);}
+function mapErr(e){const c=e.code||'';
+  if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found'))return 'Email atau password salah.';
+  if(c.includes('too-many-requests'))return 'Terlalu banyak percobaan. Coba beberapa menit lagi.';
+  if(c.includes('operation-not-allowed'))return 'Login email belum diaktifkan di Firebase.';
+  return e.message||'Gagal masuk.';}
+
+function view(v){ ['vBoot','vLogin','vHub'].forEach(id=>$(id).classList.toggle('hide',id!==v)); }
+
+/* login */
+$('btnLogin').onclick=doLogin;
+$('lPass').onkeydown=e=>{if(e.key==='Enter')doLogin();};
+$('lEmail').onkeydown=e=>{if(e.key==='Enter')$('lPass').focus();};
+async function doLogin(){
+  const b=$('btnLogin');$('lErr').classList.add('hide');b.disabled=true;b.textContent='Memeriksa…';
+  try{ await auth.signInWithEmailAndPassword($('lEmail').value.trim(),$('lPass').value); }
+  catch(e){ $('lErr').textContent=mapErr(e);$('lErr').classList.remove('hide'); }
+  finally{ b.disabled=false;b.textContent='Masuk';$('lPass').value=''; }
+}
+$('lForgot').onclick=async e=>{e.preventDefault();
+  const em=$('lEmail').value.trim(); if(!em) return toast('Isi email dulu, lalu klik lupa password.',true);
+  try{ await auth.sendPasswordResetEmail(em); toast('Email reset dikirim ke '+em+'.'); }
+  catch(err){ toast(mapErr(err),true); }};
+$('hForgot2').onclick=async e=>{e.preventDefault();
+  const em=auth.currentUser&&auth.currentUser.email; if(!em)return;
+  try{ await auth.sendPasswordResetEmail(em); toast('Email reset dikirim ke '+em+'.'); }
+  catch(err){ toast(mapErr(err),true); }};
+$('btnLogout').onclick=()=>auth.signOut();
+
+/* state */
+auth.onAuthStateChanged(async user=>{
+  if(!user){ view('vLogin'); return; }
+  try{
+    const em=user.email.toLowerCase();
+    const snap=await db.collection('users').doc(em).get();
+    if(!snap.exists){ toast('Akun belum terdaftar di database karyawan.',true); await auth.signOut(); return; }
+    const d=snap.data();
+    if(d.aktif===false){ toast('Akun Anda nonaktif. Hubungi HR.',true); await auth.signOut(); return; }
+    const nama=(d.nama||em).toUpperCase();
+    const first=nama.split(' ')[0];
+    $('hello').textContent='Halo, '+first;
+    $('uName').textContent=nama;
+    $('uMeta').textContent=(d.dept||'')+(d.jabatan?(' · '+d.jabatan):'');
+    view('vHub');
+  }catch(e){ toast('Gagal memuat: '+e.message,true); view('vLogin'); }
+});
+</script>
+</body>
+</html>
