@@ -135,6 +135,15 @@
   .pweye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;
     color:var(--brass);font:600 11px Inter,sans-serif;cursor:pointer;padding:6px 8px;text-transform:uppercase;letter-spacing:.05em}
   .pweye:hover{color:#DBAE49}
+  .hbtn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:9px;
+    font:600 12.5px Inter,sans-serif;letter-spacing:.02em;text-decoration:none;cursor:pointer;
+    border:1px solid transparent;transition:.14s;line-height:1;white-space:nowrap}
+  .hbtn svg{flex:none}
+  .hbtn.menu{color:#E8A24C;background:rgba(232,145,44,.12);border-color:rgba(232,145,44,.38)}
+  .hbtn.menu:hover{background:rgba(232,145,44,.20);border-color:rgba(232,145,44,.70);transform:translateY(-1px)}
+  .hbtn.exit{color:#E8726E;background:rgba(216,84,79,.12);border-color:rgba(216,84,79,.36);margin-left:8px}
+  .hbtn.exit:hover{background:rgba(216,84,79,.20);border-color:rgba(216,84,79,.70);transform:translateY(-1px)}
+  @media(max-width:560px){.hbtn span{display:none}.hbtn{padding:8px 10px}}
 </style>
 </head>
 <body>
@@ -375,7 +384,6 @@ function tabsFor(){
   const t=[['tAjukan','Ajukan'],['tMine','Permit Saya']];
   if(ME.isHRD || ME.headOf.length) t.push(['tApprove','Persetujuan']);
   if(ME.isHRD || ME.isAdmin) t.push(['tAll','Semua']);
-  if(ME.isAdmin) t.push(['tEmp','Karyawan']);
   t.push(['tAkun','Akun']);
   return t;
 }
