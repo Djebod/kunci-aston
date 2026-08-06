@@ -134,8 +134,17 @@
 </head>
 <body>
 
+<!-- ============ LOADING ============ -->
+<section id="vLoad" class="login">
+  <div style="text-align:center;color:var(--muted)">
+    <img src="logo-aston-white.png" alt="" style="max-width:180px;max-height:72px;margin:0 auto 18px;display:block;opacity:.9" onerror="this.style.display='none'">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--paper)">Loading page…</div>
+    <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:6px">Aston Cirebon</div>
+  </div>
+</section>
+
 <!-- ============ LOGIN ============ -->
-<section id="vLogin" class="login">
+<section id="vLogin" class="login hide">
   <div class="box">
     <img src="logo-aston-white.png" alt="Aston Cirebon" class="mark" onerror="this.style.display='none'">
     <h1 style="font-size:24px;text-align:center;text-transform:uppercase;letter-spacing:.03em">Exit Permit</h1>
@@ -161,8 +170,8 @@
         <div class="brand"><span class="t">Exit Permit</span><span class="s">Aston Cirebon</span></div>
         <div class="spacer"></div>
         <div class="who"><b id="uName">—</b><span id="uRole">—</span></div>
-        <a href="index.html" class="btn mini" style="text-decoration:none;display:inline-flex;align-items:center;margin-right:8px">‹ Menu</a>
-        <button class="btn mini" id="btnLogout">Keluar</button>
+        <a href="index.html" class="btn mini" style="text-decoration:none;display:inline-flex;align-items:center;margin-right:8px;background:#E8912C;border-color:#E8912C;color:#111;font-weight:700">‹ Menu Utama</a>
+        <button class="btn mini" id="btnLogout" style="background:#D8544F;border-color:#D8544F;color:#111;font-weight:700">Keluar</button>
       </div>
       <nav id="tabs"></nav>
     </div>
@@ -327,7 +336,8 @@ $('lForgot').onclick=async e=>{e.preventDefault();
 $('btnLogout').onclick=()=>auth.signOut();
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){ show('login'); return; }
+  if(!user){ $('vLoad').classList.add('hide'); show('login'); return; }
+  $('vLoad').classList.add('hide');
   try{
     const em=user.email.toLowerCase();
     const snap=await db.collection('users').doc(em).get();
@@ -670,7 +680,8 @@ function editEmp(email){
   const m=modal(`
     <h2 style="font-size:20px;text-transform:uppercase;margin-bottom:12px">Edit karyawan</h2>
     <div class="field"><label>Nama</label><input id="eNama" value="${esc(u.nama||'')}"></div>
-    <div class="field"><label>Email</label><input value="${esc(u.id)}" disabled></div>
+    <div class="field"><label>Email <span style="color:var(--brass);text-transform:none;letter-spacing:0">(bisa diperbaiki bila salah)</span></label>
+      <input id="eEmail" value="${esc(u.id)}" placeholder="nama@astoncirebon.com"></div>
     <div class="field"><label>Departemen</label><select id="eDept">${opts}</select></div>
     <div class="grid2">
       <div class="field"><label>Jabatan</label><input id="eJab" value="${esc(u.jabatan||'')}"></div>
@@ -685,18 +696,58 @@ function editEmp(email){
     </div>`);
   m.querySelector('#eCancel').onclick=()=>m.remove();
   m.querySelector('#eSave').onclick=async()=>{
+    const btn=m.querySelector('#eSave');
+    const newEmail=(m.querySelector('#eEmail').value||'').trim().toLowerCase();
+    const data={
+      nama:m.querySelector('#eNama').value.trim().toUpperCase(),
+      dept:m.querySelector('#eDept').value,
+      jabatan:m.querySelector('#eJab').value.trim().toUpperCase(),
+      level:m.querySelector('#eLvl').value,
+      aktif:m.querySelector('#eStat').value==='true'
+    };
+    // validasi email
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) return toast('Format email tidak valid.',true);
+    btn.disabled=true;btn.textContent='Menyimpan…';
     try{
-      await db.collection('users').doc(email).update({
-        nama:m.querySelector('#eNama').value.trim().toUpperCase(),
-        dept:m.querySelector('#eDept').value,
-        jabatan:m.querySelector('#eJab').value.trim().toUpperCase(),
-        level:m.querySelector('#eLvl').value,
-        aktif:m.querySelector('#eStat').value==='true'
-      });
-      await audit('KARYAWAN_DIUBAH', email, 'dept/jabatan/level/status');
-      toast('Karyawan diperbarui.');m.remove();loadEmp();
-    }catch(e){ toast('Gagal: '+e.message,true); }
+      if(newEmail===email){
+        // email tetap → update biasa
+        await db.collection('users').doc(email).update(data);
+        await audit('KARYAWAN_DIUBAH', email, 'dept/jabatan/level/status');
+        toast('Karyawan diperbarui.');
+      } else {
+        // email berubah → pindahkan dokumen (ID = email) + buat akun Auth baru
+        const old=EMP.find(x=>x.id===email)||{};
+        const merged={ email:newEmail, nama:data.nama, dept:data.dept, jabatan:data.jabatan,
+          level:data.level, aktif:data.aktif,
+          role: old.role||'STAFF', offDate: old.offDate||null, status: old.status||'Active', photo: old.photo||'' };
+        // 1) buat akun Auth utk email baru (instance kedua supaya admin tak logout)
+        const authRes=await buatAkunAuth(newEmail);
+        // 2) dokumen users baru
+        await db.collection('users').doc(newEmail).set(merged,{merge:true});
+        // 3) hapus dokumen lama
+        await db.collection('users').doc(email).delete();
+        await audit('KARYAWAN_GANTI_EMAIL', email, '→ '+newEmail+' ('+authRes+')');
+        toast('Email diperbaiki: '+newEmail+(authRes==='baru'?' · akun login dibuat (pass Aston2026!)':' · akun sudah ada'));
+      }
+      m.remove();loadEmp();
+    }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false;btn.textContent='Simpan'; }
   };
+}
+
+/* Buat akun Auth memakai instance Firebase kedua agar sesi admin tidak tergeser.
+   Return 'baru' | 'ada'. */
+async function buatAkunAuth(email){
+  const PASS_AWAL='Aston2026!';
+  let sec;
+  try{
+    sec=firebase.initializeApp(window.FIREBASE_CONFIG,'sec-'+Date.now());
+    await sec.auth().createUserWithEmailAndPassword(email, PASS_AWAL);
+    await sec.auth().signOut();
+    return 'baru';
+  }catch(e){
+    if(e.code==='auth/email-already-in-use') return 'ada';
+    throw e;
+  }finally{ if(sec) try{ await sec.delete(); }catch(_){} }
 }
 
 $('btnAddEmp').onclick=()=>{
