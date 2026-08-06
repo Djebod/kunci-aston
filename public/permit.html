@@ -130,12 +130,26 @@
   .switch button{background:none;border:0;color:var(--muted);padding:9px 16px;cursor:pointer;font:600 13px Inter,sans-serif}
   .switch button[aria-pressed="true"]{background:var(--brass);color:#14100A}
   a.link{color:var(--brass);font-size:12px;text-decoration:none}
+  .pwwrap{position:relative}
+  .pwwrap input{padding-right:64px}
+  .pweye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;
+    color:var(--brass);font:600 11px Inter,sans-serif;cursor:pointer;padding:6px 8px;text-transform:uppercase;letter-spacing:.05em}
+  .pweye:hover{color:#DBAE49}
 </style>
 </head>
 <body>
 
+<!-- ============ LOADING ============ -->
+<section id="vLoad" class="login">
+  <div style="text-align:center;color:var(--muted)">
+    <img src="logo-aston-white.png" alt="" style="max-width:180px;max-height:72px;margin:0 auto 18px;display:block;opacity:.9" onerror="this.style.display='none'">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--paper)">Loading page…</div>
+    <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:6px">Aston Cirebon</div>
+  </div>
+</section>
+
 <!-- ============ LOGIN ============ -->
-<section id="vLogin" class="login">
+<section id="vLogin" class="login hide">
   <div class="box">
     <img src="logo-aston-white.png" alt="Aston Cirebon" class="mark" onerror="this.style.display='none'">
     <h1 style="font-size:24px;text-align:center;text-transform:uppercase;letter-spacing:.03em">Exit Permit</h1>
@@ -144,7 +158,8 @@
       <div class="field"><label for="lEmail">Email</label>
         <input id="lEmail" type="email" autocomplete="username" placeholder="nama@astoncirebon.com"></div>
       <div class="field"><label for="lPass">Password</label>
-        <input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+        <div class="pwwrap"><input id="lPass" type="password" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pweye" onclick="togglePw(this,'lPass')">Lihat</button></div></div>
       <button class="btn primary" style="width:100%" id="btnLogin">Masuk</button>
       <p id="lErr" class="hide" style="color:var(--red);font-size:13px;margin:12px 0 0"></p>
       <p style="margin:12px 0 0;text-align:center"><a href="#" id="lForgot" class="link">Lupa password?</a></p>
@@ -161,8 +176,8 @@
         <div class="brand"><span class="t">Exit Permit</span><span class="s">Aston Cirebon</span></div>
         <div class="spacer"></div>
         <div class="who"><b id="uName">—</b><span id="uRole">—</span></div>
-        <a href="index.html" class="btn mini" style="text-decoration:none;display:inline-flex;align-items:center;margin-right:8px">‹ Menu</a>
-        <button class="btn mini" id="btnLogout">Keluar</button>
+        <a href="index.html" class="btn mini" style="text-decoration:none;display:inline-flex;align-items:center;margin-right:8px;background:#E8912C;border-color:#E8912C;color:#111;font-weight:700">‹ Menu Utama</a>
+        <button class="btn mini" id="btnLogout" style="background:#D8544F;border-color:#D8544F;color:#111;font-weight:700">Keluar</button>
       </div>
       <nav id="tabs"></nav>
     </div>
@@ -272,8 +287,15 @@
     <section id="tAkun" class="tab hide">
       <div class="sec"><h2>Ganti password</h2><div class="rule"></div></div>
       <div class="card" style="max-width:400px">
-        <div class="field"><label for="pOld">Password lama</label><input id="pOld" type="password"></div>
-        <div class="field"><label for="pNew">Password baru</label><input id="pNew" type="password" placeholder="Minimal 6 karakter"></div>
+        <div class="field"><label for="pOld">Password lama</label>
+          <div class="pwwrap"><input id="pOld" type="password">
+            <button type="button" class="pweye" onclick="togglePw(this,'pOld')">Lihat</button></div></div>
+        <div class="field"><label for="pNew">Password baru</label>
+          <div class="pwwrap"><input id="pNew" type="password" placeholder="Minimal 6 karakter">
+            <button type="button" class="pweye" onclick="togglePw(this,'pNew')">Lihat</button></div></div>
+        <div class="field"><label for="pNew2">Ulangi password baru</label>
+          <div class="pwwrap"><input id="pNew2" type="password" placeholder="Ketik ulang password baru">
+            <button type="button" class="pweye" onclick="togglePw(this,'pNew2')">Lihat</button></div></div>
         <button class="btn primary" id="btnPass">Simpan password</button>
       </div>
     </section>
@@ -327,7 +349,8 @@ $('lForgot').onclick=async e=>{e.preventDefault();
 $('btnLogout').onclick=()=>auth.signOut();
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){ show('login'); return; }
+  if(!user){ $('vLoad').classList.add('hide'); show('login'); return; }
+  $('vLoad').classList.add('hide');
   try{
     const em=user.email.toLowerCase();
     const snap=await db.collection('users').doc(em).get();
@@ -350,7 +373,7 @@ auth.onAuthStateChanged(async user=>{
 /* ====== TABS ====== */
 function tabsFor(){
   const t=[['tAjukan','Ajukan'],['tMine','Permit Saya']];
-  if(ME.isHRD || ME.headOf.length || ME.isAdmin) t.push(['tApprove','Persetujuan']);
+  if(ME.isHRD || ME.headOf.length) t.push(['tApprove','Persetujuan']);
   if(ME.isHRD || ME.isAdmin) t.push(['tAll','Semua']);
   if(ME.isAdmin) t.push(['tEmp','Karyawan']);
   t.push(['tAkun','Akun']);
@@ -469,46 +492,50 @@ function detailKv(p){
 }
 
 /* ====== PERMIT SAYA ====== */
+function tsSec(ts){ return (ts&&ts.seconds)||(ts&&ts.toDate?Math.floor(ts.toDate().getTime()/1000):0)||0; }
 async function loadMine(){
   const box=$('mineList');box.innerHTML='<div class="empty">Memuat…</div>';
   try{
-    const snap=await db.collection('permits').where('email','==',ME.email)
-      .orderBy('createdAt','desc').limit(50).get();
-    if(snap.empty){ box.innerHTML='<div class="empty">Belum ada pengajuan.</div>'; return; }
-    box.innerHTML=snap.docs.map(d=>{const p=d.data();return `
+    // hanya where email== (single-field, tanpa composite index); urut di JS
+    const snap=await db.collection('permits').where('email','==',ME.email).get();
+    let arr=snap.docs.map(d=>({id:d.id,...d.data()}));
+    arr.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+    if(!arr.length){ box.innerHTML='<div class="empty">Belum ada pengajuan.</div>'; return; }
+    box.innerHTML=arr.slice(0,80).map(p=>`
       <div class="pcard">
         <div class="top">
           <div><div class="nm">${typePill(p.typePermit)} ${esc(p.reason)}</div>
-            <div class="meta">${fmtTs(p.createdAt)}</div></div>
+            <div class="meta">${fmtTs(p.createdAt)}${p.arsip?' · arsip':''}</div></div>
           <div>${statusPill(p.status)}</div>
         </div>
         ${detailKv(p)}
         ${flow(p)}
-      </div>`;}).join('');
+      </div>`).join('');
   }catch(e){ box.innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
 }
 
 /* ====== PERSETUJUAN (HOD / HRD) ====== */
 async function fetchPending(){
-  // Ambil permit yang perlu tindakan user ini.
+  // Ambil permit AKTIF (bukan arsip) yang perlu tindakan user ini.
+  // Query dibuat single-field agar TIDAK perlu composite index.
   const out=[]; const seen={};
-  const add=snap=>snap.docs.forEach(d=>{if(!seen[d.id]){seen[d.id]=1;out.push({id:d.id,...d.data()});}});
-  try{
-    if(ME.headOf.length){
-      // dept head: PENDING_HOD di mana emailnya tercatat
-      const s=await db.collection('permits').where('status','==','PENDING_HOD')
-        .where('deptHeadEmails','array-contains',ME.email).get();
-      add(s);
-    }
-    if(ME.isHRD||ME.isAdmin){
-      const s=await db.collection('permits').where('status','==','PENDING_HRD').get();
-      add(s);
-      // HRD juga boleh bypass yang masih PENDING_HOD
-      const s2=await db.collection('permits').where('status','==','PENDING_HOD').get();
-      add(s2);
-    }
-  }catch(e){ throw e; }
-  out.sort((a,b)=>((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0));
+  const push=p=>{ if(!seen[p.id]){ seen[p.id]=1; out.push(p); } };
+
+  // Dept Head: hanya permit departemennya (email tercatat di deptHeadEmails)
+  if(ME.headOf.length){
+    const s=await db.collection('permits')
+      .where('deptHeadEmails','array-contains',ME.email).get();
+    s.docs.forEach(d=>{ const p={id:d.id,...d.data()};
+      if(!p.arsip && p.status==='PENDING_HOD') push(p); });
+  }
+  // HRD: hotel-wide — semua yang menunggu HRD, plus yang masih di HOD (untuk bypass)
+  if(ME.isHRD){
+    const s=await db.collection('permits')
+      .where('status','in',['PENDING_HRD','PENDING_HOD']).get();
+    s.docs.forEach(d=>{ const p={id:d.id,...d.data()};
+      if(!p.arsip) push(p); });
+  }
+  out.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
   return out;
 }
 async function refreshApprovalCount(){
@@ -528,8 +555,8 @@ async function loadApprove(){
     if(!list.length){ box.innerHTML='<div class="empty">Tidak ada yang menunggu persetujuan Anda. 🎉</div>'; return; }
     box.innerHTML=list.map(p=>{
       const canHod = p.status==='PENDING_HOD' && (ME.headOf.length && p.deptHeadEmails.includes(ME.email));
-      const canHr  = (p.status==='PENDING_HRD') && (ME.isHRD||ME.isAdmin);
-      const canBypass = p.status==='PENDING_HOD' && (ME.isHRD||ME.isAdmin);
+      const canHr  = (p.status==='PENDING_HRD') && ME.isHRD;
+      const canBypass = p.status==='PENDING_HOD' && ME.isHRD;
       let acts='';
       if(canHod) acts+=`<button class="btn ok mini" data-act="hod" data-id="${p.id}">Setujui (Dept Head)</button>`;
       if(canHr)  acts+=`<button class="btn ok mini" data-act="hr" data-id="${p.id}">Setujui (HRD)</button>`;
@@ -670,7 +697,8 @@ function editEmp(email){
   const m=modal(`
     <h2 style="font-size:20px;text-transform:uppercase;margin-bottom:12px">Edit karyawan</h2>
     <div class="field"><label>Nama</label><input id="eNama" value="${esc(u.nama||'')}"></div>
-    <div class="field"><label>Email</label><input value="${esc(u.id)}" disabled></div>
+    <div class="field"><label>Email <span style="color:var(--brass);text-transform:none;letter-spacing:0">(bisa diperbaiki bila salah)</span></label>
+      <input id="eEmail" value="${esc(u.id)}" placeholder="nama@astoncirebon.com"></div>
     <div class="field"><label>Departemen</label><select id="eDept">${opts}</select></div>
     <div class="grid2">
       <div class="field"><label>Jabatan</label><input id="eJab" value="${esc(u.jabatan||'')}"></div>
@@ -685,18 +713,58 @@ function editEmp(email){
     </div>`);
   m.querySelector('#eCancel').onclick=()=>m.remove();
   m.querySelector('#eSave').onclick=async()=>{
+    const btn=m.querySelector('#eSave');
+    const newEmail=(m.querySelector('#eEmail').value||'').trim().toLowerCase();
+    const data={
+      nama:m.querySelector('#eNama').value.trim().toUpperCase(),
+      dept:m.querySelector('#eDept').value,
+      jabatan:m.querySelector('#eJab').value.trim().toUpperCase(),
+      level:m.querySelector('#eLvl').value,
+      aktif:m.querySelector('#eStat').value==='true'
+    };
+    // validasi email
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) return toast('Format email tidak valid.',true);
+    btn.disabled=true;btn.textContent='Menyimpan…';
     try{
-      await db.collection('users').doc(email).update({
-        nama:m.querySelector('#eNama').value.trim().toUpperCase(),
-        dept:m.querySelector('#eDept').value,
-        jabatan:m.querySelector('#eJab').value.trim().toUpperCase(),
-        level:m.querySelector('#eLvl').value,
-        aktif:m.querySelector('#eStat').value==='true'
-      });
-      await audit('KARYAWAN_DIUBAH', email, 'dept/jabatan/level/status');
-      toast('Karyawan diperbarui.');m.remove();loadEmp();
-    }catch(e){ toast('Gagal: '+e.message,true); }
+      if(newEmail===email){
+        // email tetap → update biasa
+        await db.collection('users').doc(email).update(data);
+        await audit('KARYAWAN_DIUBAH', email, 'dept/jabatan/level/status');
+        toast('Karyawan diperbarui.');
+      } else {
+        // email berubah → pindahkan dokumen (ID = email) + buat akun Auth baru
+        const old=EMP.find(x=>x.id===email)||{};
+        const merged={ email:newEmail, nama:data.nama, dept:data.dept, jabatan:data.jabatan,
+          level:data.level, aktif:data.aktif,
+          role: old.role||'STAFF', offDate: old.offDate||null, status: old.status||'Active', photo: old.photo||'' };
+        // 1) buat akun Auth utk email baru (instance kedua supaya admin tak logout)
+        const authRes=await buatAkunAuth(newEmail);
+        // 2) dokumen users baru
+        await db.collection('users').doc(newEmail).set(merged,{merge:true});
+        // 3) hapus dokumen lama
+        await db.collection('users').doc(email).delete();
+        await audit('KARYAWAN_GANTI_EMAIL', email, '→ '+newEmail+' ('+authRes+')');
+        toast('Email diperbaiki: '+newEmail+(authRes==='baru'?' · akun login dibuat (pass Aston2026!)':' · akun sudah ada'));
+      }
+      m.remove();loadEmp();
+    }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false;btn.textContent='Simpan'; }
   };
+}
+
+/* Buat akun Auth memakai instance Firebase kedua agar sesi admin tidak tergeser.
+   Return 'baru' | 'ada'. */
+async function buatAkunAuth(email){
+  const PASS_AWAL='Aston2026!';
+  let sec;
+  try{
+    sec=firebase.initializeApp(window.FIREBASE_CONFIG,'sec-'+Date.now());
+    await sec.auth().createUserWithEmailAndPassword(email, PASS_AWAL);
+    await sec.auth().signOut();
+    return 'baru';
+  }catch(e){
+    if(e.code==='auth/email-already-in-use') return 'ada';
+    throw e;
+  }finally{ if(sec) try{ await sec.delete(); }catch(_){} }
 }
 
 $('btnAddEmp').onclick=()=>{
@@ -764,16 +832,21 @@ $('btnHeads').onclick=()=>{
   };
 };
 
+/* ====== LIHAT PASSWORD ====== */
+function togglePw(btn,id){ const el=$(id); if(!el)return;
+  const show=el.type==='password'; el.type=show?'text':'password'; btn.textContent=show?'Tutup':'Lihat'; }
+
 /* ====== GANTI PASSWORD ====== */
 $('btnPass').onclick=async()=>{
-  const oldp=$('pOld').value, np=$('pNew').value;
+  const oldp=$('pOld').value, np=$('pNew').value, np2=$('pNew2').value;
   if(!np||np.length<6) return toast('Password baru minimal 6 karakter.',true);
+  if(np!==np2) return toast('Ulangi password tidak sama. Periksa lagi.',true);
   const b=$('btnPass');b.disabled=true;b.textContent='Menyimpan…';
   try{
     const cred=firebase.auth.EmailAuthProvider.credential(ME.email, oldp);
     await auth.currentUser.reauthenticateWithCredential(cred);
     await auth.currentUser.updatePassword(np);
-    $('pOld').value='';$('pNew').value='';
+    $('pOld').value='';$('pNew').value='';$('pNew2').value='';
     toast('Password berhasil diganti.');
   }catch(e){ toast(e.code&&e.code.includes('wrong-password')?'Password lama salah.':mapErr(e),true); }
   finally{ b.disabled=false;b.textContent='Simpan password'; }
