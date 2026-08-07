@@ -1,26 +1,29 @@
 const { sql, getUser, body } = require('../_db');
 
-// Daftar kolom dengan alias camelCase supaya cocok dengan gatepass.html.
-const COLS = `
-  id,
-  gp_id            AS "gpId",
-  requester_email  AS "requesterEmail",
-  requester_name   AS "requesterName",
-  department,
-  dept_head_emails AS "deptHeadEmails",
-  type, purpose, status,
-  item_status      AS "itemStatus",
-  dept_head_name   AS "deptHeadName",
-  finance_name     AS "financeName",
-  hr_name          AS "hrName",
-  rejected_reason  AS "rejectedReason",
-  arsip,
-  created_at       AS "createdAt",
-  CASE WHEN dept_head_at IS NOT NULL THEN 'APPROVED'
-       WHEN status <> 'PENDING_HOD' THEN 'SKIP' ELSE '' END AS "approvalDeptHead",
-  CASE WHEN finance_at IS NOT NULL THEN 'APPROVED' ELSE '' END AS "approvalFinance",
-  CASE WHEN hr_at IS NOT NULL THEN 'APPROVED' ELSE '' END      AS "approvalHR"
-`;
+// Ubah baris snake_case dari Postgres → objek camelCase yang dipakai gatepass.html.
+function mapRow(r) {
+  return {
+    id: r.id,
+    gpId: r.gp_id,
+    requesterEmail: r.requester_email,
+    requesterName: r.requester_name,
+    department: r.department,
+    deptHeadEmails: r.dept_head_emails || [],
+    type: r.type,
+    purpose: r.purpose,
+    status: r.status,
+    itemStatus: r.item_status || '',
+    deptHeadName: r.dept_head_name || '',
+    financeName: r.finance_name || '',
+    hrName: r.hr_name || '',
+    rejectedReason: r.rejected_reason || '',
+    arsip: r.arsip === true,
+    createdAt: r.created_at ? new Date(r.created_at).toISOString() : null,
+    approvalDeptHead: r.dept_head_at ? 'APPROVED' : (r.status !== 'PENDING_HOD' ? 'SKIP' : ''),
+    approvalFinance: r.finance_at ? 'APPROVED' : '',
+    approvalHR: r.hr_at ? 'APPROVED' : ''
+  };
+}
 
 module.exports = async (req, res) => {
   try {
@@ -33,37 +36,45 @@ module.exports = async (req, res) => {
 
     let rows;
     if (scope === 'mine') {
-      rows = await sql`SELECT ${sql.unsafe(COLS)} FROM gatepass
+      rows = await sql`SELECT * FROM gatepass
         WHERE requester_email=${email} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
     } else if (scope === 'out') {
-      rows = await sql`SELECT ${sql.unsafe(COLS)} FROM gatepass
+      rows = await sql`SELECT * FROM gatepass
         WHERE item_status='DI LUAR HOTEL' AND arsip=false AND type IN ('REPAIR','BORROWED') AND status<>'REJECTED'
         ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
     } else if (scope === 'pending_hod') {
-      rows = await sql`SELECT ${sql.unsafe(COLS)} FROM gatepass
+      rows = await sql`SELECT * FROM gatepass
         WHERE status='PENDING_HOD' AND arsip=false AND ${email} = ANY(dept_head_emails)
         ORDER BY created_at DESC`;
     } else if (scope === 'pending_finance') {
-      rows = await sql`SELECT ${sql.unsafe(COLS)} FROM gatepass
+      rows = await sql`SELECT * FROM gatepass
         WHERE status='PENDING_FINANCE' AND arsip=false ORDER BY created_at DESC`;
     } else if (scope === 'pending_hrd') {
-      rows = await sql`SELECT ${sql.unsafe(COLS)} FROM gatepass
+      rows = await sql`SELECT * FROM gatepass
         WHERE status='PENDING_HRD' AND arsip=false ORDER BY created_at DESC`;
     } else {
-      rows = await sql`SELECT ${sql.unsafe(COLS)} FROM gatepass
+      rows = await sql`SELECT * FROM gatepass
         ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`;
     }
 
-    // Ambil items untuk gatepass yang tampil (camelCase).
-    const ids = rows.map((r) => r.id);
-    let items = [];
+    const data = rows.map(mapRow);
+
+    // Ambil items untuk gatepass yang tampil, lalu tempelkan (camelCase).
+    const ids = data.map((r) => r.id);
     if (ids.length) {
-      items = await sql`SELECT gatepass_id AS "gatepassId", name, qty, unit, description,
-        photo_url AS "photoURL" FROM gatepass_items WHERE gatepass_id = ANY(${ids})`;
+      const items = await sql`SELECT * FROM gatepass_items WHERE gatepass_id = ANY(${ids})`;
+      const byGp = {};
+      items.forEach((it) => {
+        const obj = {
+          id: it.id, name: it.name, qty: it.qty, unit: it.unit,
+          description: it.description || '', photoURL: it.photo_url || ''
+        };
+        (byGp[it.gatepass_id] = byGp[it.gatepass_id] || []).push(obj);
+      });
+      data.forEach((r) => { r.items = byGp[r.id] || []; });
+    } else {
+      data.forEach((r) => { r.items = []; });
     }
-    const byGp = {};
-    items.forEach((it) => { (byGp[it.gatepassId] = byGp[it.gatepassId] || []).push(it); });
-    const data = rows.map((r) => ({ ...r, items: byGp[r.id] || [] }));
 
     res.json({ ok: true, data });
   } catch (e) {
