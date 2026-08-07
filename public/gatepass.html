@@ -234,11 +234,31 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const FOTO_API = 'GANTI_URL_APPS_SCRIPT_FOTO';
 const FOTO_SECRET = 'GANTI_DENGAN_KATA_SANDI_RAHASIA_ACAK';
 
+// panggil API Neon dengan menyertakan token login Firebase
+async function apiGP(action, payload){
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch('/api/gatepass/'+action, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+    body: JSON.stringify(payload||{})
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||'Gagal');
+  return j;
+}
+
 let toastT;
 function toast(m,e){clearTimeout(toastT);document.querySelectorAll('.toast').forEach(t=>t.remove());const el=document.createElement('div');el.className='toast'+(e?' err':'');el.textContent=m;document.body.appendChild(el);toastT=setTimeout(()=>el.remove(),4000);}
 function mapErr(e){const c=e.code||'';if(c.includes('invalid-credential')||c.includes('wrong-password')||c.includes('user-not-found'))return 'Email atau password salah.';if(c.includes('too-many-requests'))return 'Terlalu banyak percobaan.';return e.message||'Gagal.';}
 function togglePw(btn,id){const el=$(id);if(!el)return;const s=el.type==='password';el.type=s?'text':'password';btn.textContent=s?'Tutup':'Lihat';}
-function tsSec(ts){return (ts&&ts.seconds)||(ts&&ts.toDate?Math.floor(ts.toDate().getTime()/1000):0)||0;}
+function tsSec(ts){
+  if(!ts) return 0;
+  if(typeof ts==='number') return ts>1e12?Math.floor(ts/1000):ts;
+  if(typeof ts==='string'){ const t=Date.parse(ts); return isNaN(t)?0:Math.floor(t/1000); }
+  if(ts.seconds) return ts.seconds;
+  if(ts.toDate) return Math.floor(ts.toDate().getTime()/1000);
+  return 0;
+}
 function fmtTs(ts){const s=tsSec(ts);if(!s)return '';return new Date(s*1000).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 
 /* upload beberapa foto → array URL (sejajar index item) */
@@ -368,21 +388,12 @@ $('btnSubmit').onclick=async()=>{
     b.textContent='Menyimpan…';
     const follow=(type==='REPAIR'||type==='BORROWED');
     const startStatus=heads.length?'PENDING_HOD':'PENDING_FINANCE';
-    const now=new Date();
-    const doc={
-      gpId, createdAt:FV.serverTimestamp(),
-      date:now.toLocaleDateString('id-ID'), time:now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),
-      type, requesterName:ME.name, requesterEmail:ME.email, department:ME.dept, purpose,
-      deptHeadEmails:heads, items:itemsClean,
-      status:startStatus, itemStatus:follow?'DI LUAR HOTEL':'',
-      approvalDeptHead:heads.length?'':'SKIP', deptHeadName:'', deptHeadEmail:'', deptHeadRemark:'', deptHeadAt:null,
-      approvalFinance:'', financeName:'', financeEmail:'', financeRemark:'', financeAt:null,
-      approvalHR:'', hrName:'', hrEmail:'', hrRemark:'', hrAt:null,
-      rejectedBy:'', rejectedRole:'', rejectedReason:'', rejectedAt:null,
-      arsip:false,
-      logs:[{ at:new Date().toISOString(), actor:ME.name, email:ME.email, role:'STAFF', action:'CREATE', note:items.length+' barang' }]
-    };
-    await db.collection('gatepass').add(doc);
+    await apiGP('create',{
+      gpId, type, purpose, items:itemsClean,
+      requesterName:ME.name, department:ME.dept,
+      deptHeadEmails:heads,
+      status:startStatus, itemStatus:follow?'DI LUAR HOTEL':''
+    });
     toast('Gate pass terkirim. Menunggu '+(heads.length?'Dept Head':'Finance')+'.');
     $('fPurpose').value='';$('items').innerHTML='';addItem();
     show('tMine');
@@ -429,8 +440,8 @@ function itemsHtml(g){
 async function loadMine(){
   const box=$('mineList');box.innerHTML='<div class="empty">Memuat…</div>';
   try{
-    const snap=await db.collection('gatepass').where('requesterEmail','==',ME.email).get();
-    const mine=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+    const j=await apiGP('list',{ scope:'mine', email:ME.email, limit:50, offset:0 });
+    const mine=(j.data||[]).sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
     ALL=mergeAll(ALL,mine);
     if(!mine.length){ box.innerHTML='<div class="empty">Belum ada gate pass.</div>'; return; }
     box.innerHTML=mine.map(g=>cardHtml(g)).join('');
@@ -462,18 +473,9 @@ async function fetchPending(force){
   if(!force && PENDING_CACHE && (Date.now()-PENDING_TS)<45000) return PENDING_CACHE;
   const out=[]; const seen={};
   const push=g=>{ if(!seen[g.id]){ seen[g.id]=1; out.push(g); } };
-  if(ME.headOf.length){
-    const s=await db.collection('gatepass').where('deptHeadEmails','array-contains',ME.email).get();
-    s.docs.forEach(d=>{const g={id:d.id,...d.data()}; if(!g.arsip && g.status==='PENDING_HOD') push(g);});
-  }
-  if(ME.isFinance){
-    const s=await db.collection('gatepass').where('status','==','PENDING_FINANCE').get();
-    s.docs.forEach(d=>{const g={id:d.id,...d.data()}; if(!g.arsip) push(g);});
-  }
-  if(ME.isHRD){
-    const s=await db.collection('gatepass').where('status','==','PENDING_HRD').get();
-    s.docs.forEach(d=>{const g={id:d.id,...d.data()}; if(!g.arsip) push(g);});
-  }
+  if(ME.headOf.length){ (await apiGP('list',{scope:'pending_hod', email:ME.email})).data.forEach(push); }
+  if(ME.isFinance){ (await apiGP('list',{scope:'pending_finance'})).data.forEach(push); }
+  if(ME.isHRD){ (await apiGP('list',{scope:'pending_hrd'})).data.forEach(push); }
   out.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
   PENDING_CACHE=out; PENDING_TS=Date.now();
   return out;
@@ -514,21 +516,8 @@ function logEntry(role,action,note){ return { at:new Date().toISOString(), actor
 async function doApprove(id,role,btn){
   const note=prompt('Catatan (opsional):'); if(note===null) return;
   btn.disabled=true;
-  const ref=db.collection('gatepass').doc(id);
   try{
-    const snap=await ref.get(); if(!snap.exists) throw new Error('Data tidak ada.');
-    const g=snap.data(); const now=FV.serverTimestamp();
-    if(role==='HOD'){
-      if(g.status!=='PENDING_HOD') throw new Error('Sudah diproses pihak lain.');
-      await ref.update({ status:'PENDING_FINANCE', approvalDeptHead:'APPROVED', deptHeadName:ME.name, deptHeadEmail:ME.email, deptHeadRemark:note, deptHeadAt:now, logs:FV.arrayUnion(logEntry('HOD','APPROVE',note)) });
-    } else if(role==='FINANCE'){
-      if(g.status!=='PENDING_FINANCE') throw new Error('Sudah diproses / Dept Head belum.');
-      await ref.update({ status:'PENDING_HRD', approvalFinance:'APPROVED', financeName:ME.name, financeEmail:ME.email, financeRemark:note, financeAt:now, logs:FV.arrayUnion(logEntry('FINANCE','APPROVE',note)) });
-    } else if(role==='HRD'){
-      if(g.status!=='PENDING_HRD') throw new Error('Finance belum menyetujui.');
-      if(String(g.approvalFinance).toUpperCase()!=='APPROVED') throw new Error('HRD tidak bisa bypass Finance.');
-      await ref.update({ status:'APPROVED', approvalHR:'APPROVED', hrName:ME.name, hrEmail:ME.email, hrRemark:note, hrAt:now, logs:FV.arrayUnion(logEntry('HRD','APPROVE',note)) });
-    } else throw new Error('Role tidak valid.');
+    await apiGP('approve',{ id, role, actorName:ME.name, note });
     invalidatePending(); toast('Disetujui.'); loadApprove(); refreshCount();
   }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
 }
@@ -536,9 +525,7 @@ async function doReject(id,role,btn){
   const note=prompt('Alasan penolakan:'); if(note===null) return; if(!note.trim()) return toast('Alasan wajib diisi.',true);
   btn.disabled=true;
   try{
-    await db.collection('gatepass').doc(id).update({ status:'REJECTED',
-      rejectedBy:ME.name, rejectedRole:role, rejectedReason:note, rejectedAt:FV.serverTimestamp(),
-      logs:FV.arrayUnion(logEntry(role,'REJECT',note)) });
+    await apiGP('reject',{ id, role, actorName:ME.name, note });
     invalidatePending(); toast('Ditolak.'); loadApprove(); refreshCount();
   }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
 }
@@ -566,7 +553,7 @@ async function loadOut(){
     box.querySelectorAll('[data-back]').forEach(b=>b.onclick=async()=>{
       if(!confirm('Tandai barang ini SUDAH KEMBALI ke hotel?'))return; b.disabled=true;
       const role=ME.isHRD?'HRD':(ME.isFinance?'FINANCE':(ME.headOf.length?'HOD':'STAFF'));
-      try{ await db.collection('gatepass').doc(b.dataset.back).update({ itemStatus:'SUDAH KEMBALI', logs:FV.arrayUnion(logEntry(role,'ITEM_STATUS','SUDAH KEMBALI')) });
+      try{ await apiGP('itemStatus',{ id:b.dataset.back, itemStatus:'SUDAH KEMBALI', actorName:ME.name, role });
         toast('Ditandai sudah kembali.'); loadOut();
       }catch(e){ toast('Gagal: '+e.message,true); b.disabled=false; }
     });
@@ -578,7 +565,7 @@ async function loadOut(){
 const PAGE_SIZE=15;
 let allCursor=null, allEnd=false, allLoading=false;
 async function loadAll(){
-  ALL=[]; allCursor=null; allEnd=false;
+  ALL=[]; allEnd=false;
   $('tblAll').innerHTML='<tr><td class="empty">Memuat…</td></tr>';
   await loadMoreAll(true);
 }
@@ -587,12 +574,10 @@ async function loadMoreAll(first){
   allLoading=true;
   const btn=$('btnMore'); if(btn){ btn.disabled=true; btn.textContent='Memuat…'; }
   try{
-    let q=db.collection('gatepass').orderBy('createdAt','desc').limit(PAGE_SIZE);
-    if(allCursor) q=q.startAfter(allCursor);
-    const snap=await q.get();
-    ALL=mergeAll(ALL, snap.docs.map(d=>({id:d.id,...d.data()})));
-    if(snap.docs.length) allCursor=snap.docs[snap.docs.length-1];
-    if(snap.size<PAGE_SIZE) allEnd=true;
+    const j=await apiGP('list',{ scope:'all', limit:PAGE_SIZE, offset: ALL.length });
+    const batch=j.data||[];
+    ALL=mergeAll(ALL, batch);
+    if(batch.length<PAGE_SIZE) allEnd=true;
     renderAll();
   }catch(e){ $('tblAll').innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
   finally{
@@ -635,7 +620,7 @@ $('btnXlsx').onclick=()=>{
 
 /* ====== CETAK / PDF ====== */
 function cetak(id){
-  const g=ALL.find(x=>x.id===id); if(!g){ toast('Data belum dimuat, buka tab yang menampilkannya dulu.',true); return; }
+  const g=ALL.find(x=>String(x.id)===String(id)); if(!g){ toast('Data belum dimuat, buka tab yang menampilkannya dulu.',true); return; }
   const itemsRows=(g.items||[]).map((it,i)=>`<tr>
     <td style="text-align:center">${i+1}</td><td>${esc(it.name)}</td>
     <td style="text-align:center">${esc(it.qty)}</td><td style="text-align:center">${esc(it.unit)}</td>
