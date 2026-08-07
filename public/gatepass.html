@@ -196,6 +196,10 @@
         <div class="field"><label>Cari (nama/dept/keperluan)</label><input id="fQ" placeholder="ketik lalu Terapkan"></div>
       </div><button class="btn primary mini" id="btnFilter">Terapkan</button></div>
       <div class="card scroll"><table id="tblAll"></table></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+        <button class="btn mini" id="btnMore">Muat 15 data lagi</button>
+        <span id="allInfo" class="note" style="margin:0"></span>
+      </div>
     </section>
 
     <!-- AKUN -->
@@ -451,7 +455,11 @@ function bindCards(box){ box.querySelectorAll('[data-pdf]').forEach(b=>b.onclick
 function mergeAll(cur,add){ const m={}; (cur||[]).forEach(x=>m[x.id]=x); (add||[]).forEach(x=>m[x.id]=x); return Object.values(m); }
 
 /* ====== PERSETUJUAN ====== */
-async function fetchPending(){
+let PENDING_CACHE=null, PENDING_TS=0;
+function invalidatePending(){ PENDING_TS=0; PENDING_CACHE=null; }
+async function fetchPending(force){
+  // Cache singkat: badge + tab Persetujuan berbagi 1x baca (hemat kuota Firestore).
+  if(!force && PENDING_CACHE && (Date.now()-PENDING_TS)<45000) return PENDING_CACHE;
   const out=[]; const seen={};
   const push=g=>{ if(!seen[g.id]){ seen[g.id]=1; out.push(g); } };
   if(ME.headOf.length){
@@ -467,6 +475,7 @@ async function fetchPending(){
     s.docs.forEach(d=>{const g={id:d.id,...d.data()}; if(!g.arsip) push(g);});
   }
   out.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+  PENDING_CACHE=out; PENDING_TS=Date.now();
   return out;
 }
 async function refreshCount(){
@@ -520,7 +529,7 @@ async function doApprove(id,role,btn){
       if(String(g.approvalFinance).toUpperCase()!=='APPROVED') throw new Error('HRD tidak bisa bypass Finance.');
       await ref.update({ status:'APPROVED', approvalHR:'APPROVED', hrName:ME.name, hrEmail:ME.email, hrRemark:note, hrAt:now, logs:FV.arrayUnion(logEntry('HRD','APPROVE',note)) });
     } else throw new Error('Role tidak valid.');
-    toast('Disetujui.'); loadApprove(); refreshCount();
+    invalidatePending(); toast('Disetujui.'); loadApprove(); refreshCount();
   }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
 }
 async function doReject(id,role,btn){
@@ -530,7 +539,7 @@ async function doReject(id,role,btn){
     await db.collection('gatepass').doc(id).update({ status:'REJECTED',
       rejectedBy:ME.name, rejectedRole:role, rejectedReason:note, rejectedAt:FV.serverTimestamp(),
       logs:FV.arrayUnion(logEntry(role,'REJECT',note)) });
-    toast('Ditolak.'); loadApprove(); refreshCount();
+    invalidatePending(); toast('Ditolak.'); loadApprove(); refreshCount();
   }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
 }
 
@@ -566,13 +575,31 @@ async function loadOut(){
 }
 
 /* ====== SEMUA + EXPORT ====== */
+const PAGE_SIZE=15;
+let allCursor=null, allEnd=false, allLoading=false;
 async function loadAll(){
-  const t=$('tblAll');t.innerHTML='<tr><td class="empty">Memuat…</td></tr>';
+  ALL=[]; allCursor=null; allEnd=false;
+  $('tblAll').innerHTML='<tr><td class="empty">Memuat…</td></tr>';
+  await loadMoreAll(true);
+}
+async function loadMoreAll(first){
+  if(allLoading||allEnd) return;
+  allLoading=true;
+  const btn=$('btnMore'); if(btn){ btn.disabled=true; btn.textContent='Memuat…'; }
   try{
-    const snap=await db.collection('gatepass').orderBy('createdAt','desc').limit(500).get();
-    ALL=snap.docs.map(d=>({id:d.id,...d.data()}));
+    let q=db.collection('gatepass').orderBy('createdAt','desc').limit(PAGE_SIZE);
+    if(allCursor) q=q.startAfter(allCursor);
+    const snap=await q.get();
+    ALL=mergeAll(ALL, snap.docs.map(d=>({id:d.id,...d.data()})));
+    if(snap.docs.length) allCursor=snap.docs[snap.docs.length-1];
+    if(snap.size<PAGE_SIZE) allEnd=true;
     renderAll();
-  }catch(e){ t.innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+  }catch(e){ $('tblAll').innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+  finally{
+    allLoading=false;
+    const b=$('btnMore');
+    if(b){ b.disabled=allEnd; b.textContent=allEnd?'Semua data termuat':'Muat 15 data lagi'; }
+  }
 }
 function filtered(){
   const st=$('fStat').value, q=$('fQ').value.trim().toUpperCase();
@@ -582,6 +609,7 @@ function filtered(){
 }
 function renderAll(){
   const rows=filtered(); const t=$('tblAll');
+  const info=$('allInfo'); if(info) info.textContent='Menampilkan '+rows.length+' dari '+ALL.length+' data dimuat'+(allEnd?'':' · klik "Muat 15 lagi" untuk lainnya');
   t.innerHTML=`<thead><tr><th>Tanggal</th><th>Nama</th><th>Dept</th><th>Tipe</th><th>Keperluan</th><th>Status</th><th>Barang</th><th></th></tr></thead><tbody>`+
     (rows.length?rows.map(g=>`<tr>
       <td class="mono" style="font-size:12px;white-space:nowrap">${fmtTs(g.createdAt)||esc(g.date)}</td>
@@ -592,6 +620,7 @@ function renderAll(){
     </tr>`).join(''):'<tr><td class="empty" colspan="8">Tidak ada data.</td></tr>')+'</tbody>';
   bindCards(t);
 }
+document.addEventListener('click',e=>{ if(e.target&&e.target.id==='btnMore') loadMoreAll(); });
 $('btnFilter').onclick=renderAll;
 $('btnXlsx').onclick=()=>{
   const rows=filtered(); if(!rows.length) return toast('Tidak ada data.',true);

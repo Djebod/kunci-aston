@@ -280,6 +280,10 @@
         <button class="btn primary mini" id="btnFilter">Terapkan filter</button>
       </div>
       <div class="card scroll"><table id="tblAll"></table></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+        <button class="btn mini" id="btnMore">Muat 15 data lagi</button>
+        <span id="allInfo" class="note" style="margin:0"></span>
+      </div>
     </section>
 
     <!-- KARYAWAN -->
@@ -336,7 +340,7 @@ let ME=null, CFG={hrd:[],deptHeads:{}}, TYPE='Exit Permit', TRANSPORT='NO';
 /* ====== NOTIFIKASI EMAIL (via Apps Script relay) ======
    Tempel URL Web App Apps Script (email-permit.gs) di bawah.
    Kalau dibiarkan 'GANTI_...', email dilewati diam-diam (aplikasi tetap jalan). */
-const EMAIL_API = 'https://script.google.com/macros/s/AKfycby90LK9DJD9KAMV4pOejwzSirIhN1HxRK0V6VJxFwO6bqRJxadR_ngYvXRpqfb6mQHh/execL';
+const EMAIL_API = 'GANTI_URL_APPS_SCRIPT_EMAIL';
 function kirimEmail(type, p, extra){
   try{
     if(!EMAIL_API || EMAIL_API.indexOf('GANTI_')===0) return; // belum diisi → lewati
@@ -555,7 +559,11 @@ async function loadMine(){
 }
 
 /* ====== PERSETUJUAN (HOD / HRD) ====== */
-async function fetchPending(){
+let PENDING_CACHE=null, PENDING_TS=0;
+function invalidatePending(){ PENDING_TS=0; PENDING_CACHE=null; }
+async function fetchPending(force){
+  // Cache singkat: hitungan badge + tab Persetujuan berbagi 1x baca (hemat kuota).
+  if(!force && PENDING_CACHE && (Date.now()-PENDING_TS)<45000) return PENDING_CACHE;
   // Ambil permit AKTIF (bukan arsip) yang perlu tindakan user ini.
   // Query dibuat single-field agar TIDAK perlu composite index.
   const out=[]; const seen={};
@@ -576,6 +584,7 @@ async function fetchPending(){
       if(!p.arsip) push(p); });
   }
   out.sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+  PENDING_CACHE=out; PENDING_TS=Date.now();
   return out;
 }
 let APPROVE_LIST=[];
@@ -658,20 +667,38 @@ async function doApprove(act,id,btn){
       kirimEmail('APPROVED', P, { to:[P.email], approverName:ME.name, remark, bypass:true });
       toast('Bypass & disetujui.');
     }
+    invalidatePending();
     loadApprove(); refreshApprovalCount();
   }catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
 }
 
 /* ====== SEMUA (HRD/admin) ====== */
 let ALL=[];
+const PAGE_SIZE=15;
+let allCursor=null, allEnd=false, allLoading=false;
 async function loadAll(){
-  const t=$('tblAll');t.innerHTML='<tr><td class="empty">Memuat…</td></tr>';
+  ALL=[]; allCursor=null; allEnd=false;
+  $('tblAll').innerHTML='<tr><td class="empty">Memuat…</td></tr>';
+  await loadMoreAll(true);
+}
+async function loadMoreAll(first){
+  if(allLoading||allEnd) return;
+  allLoading=true;
+  const btn=$('btnMore'); if(btn){ btn.disabled=true; btn.textContent='Memuat…'; }
   try{
-    let q=db.collection('permits').orderBy('createdAt','desc').limit(500);
+    let q=db.collection('permits').orderBy('createdAt','desc').limit(PAGE_SIZE);
+    if(allCursor) q=q.startAfter(allCursor);
     const snap=await q.get();
-    ALL=snap.docs.map(d=>({id:d.id,...d.data()}));
+    ALL.push(...snap.docs.map(d=>({id:d.id,...d.data()})));
+    if(snap.docs.length) allCursor=snap.docs[snap.docs.length-1];
+    if(snap.size<PAGE_SIZE) allEnd=true;
     renderAll();
-  }catch(e){ t.innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+  }catch(e){ $('tblAll').innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+  finally{
+    allLoading=false;
+    const b=$('btnMore');
+    if(b){ b.disabled=allEnd; b.textContent=allEnd?'Semua data termuat':'Muat 15 data lagi'; b.classList.toggle('hide',allEnd&&ALL.length<=PAGE_SIZE); }
+  }
 }
 function renderAll(){
   const from=$('fFrom').value, to=$('fTo').value, st=$('fStat').value, q=$('fQ').value.trim().toUpperCase();
@@ -683,6 +710,7 @@ function renderAll(){
       if(to&&d>new Date(to+'T23:59:59')) return false; }
     return true;
   });
+  const info=$('allInfo'); if(info) info.textContent='Menampilkan '+rows.length+' dari '+ALL.length+' data dimuat'+(allEnd?'':' · klik "Muat 15 lagi" untuk lainnya');
   const t=$('tblAll');
   t.innerHTML=`<thead><tr><th>Waktu</th><th>Nama</th><th>Dept</th><th>Jenis</th><th>Alasan</th><th>Status</th><th>Dept Head</th><th>HRD</th></tr></thead><tbody>`+
     (rows.length?rows.map(p=>`<tr>
@@ -697,6 +725,7 @@ function renderAll(){
     </tr>`).join('')
     :'<tr><td class="empty" colspan="8">Tidak ada data untuk filter ini.</td></tr>')+'</tbody>';
 }
+document.addEventListener('click',e=>{ if(e.target&&e.target.id==='btnMore') loadMoreAll(); });
 $('btnFilter').onclick=renderAll;
 $('btnCsv').onclick=()=>{
   const from=$('fFrom').value,to=$('fTo').value,st=$('fStat').value,q=$('fQ').value.trim().toUpperCase();
