@@ -231,8 +231,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 /* ====== UPLOAD FOTO KE DRIVE (Apps Script mini) ======
    Tempel Web app URL dari gatepass-foto.gs + SECRET yang sama.
    Kalau dibiarkan 'GANTI_...', foto dilewati (data tetap tersimpan). */
-const FOTO_API = 'GANTI_URL_APPS_SCRIPT_FOTO';
-const FOTO_SECRET = 'GANTI_DENGAN_KATA_SANDI_RAHASIA_ACAK';
+const FOTO_API = 'https://script.google.com/macros/s/AKfycbyaCXWSIxs4f6WyTIUU8ncfVeH4Inh5UHzqq5LdmUuqmM5hCIHGh-yQtb2dNhOJenwTjg/exec';   // URL /exec Apps Script foto
+const FOTO_SECRET = 'AstonFoto_9x2K7pQ';         // <-- sudah sama dengan SECRET di foto-upload.gs
 
 // panggil API Neon dengan menyertakan token login Firebase
 async function apiGP(action, payload){
@@ -534,10 +534,8 @@ async function doReject(id,role,btn){
 async function loadOut(){
   const box=$('outList');box.innerHTML='<div class="empty">Memuat…</div>';
   try{
-    const snap=await db.collection('gatepass').where('itemStatus','==','DI LUAR HOTEL').get();
-    const list=snap.docs.map(d=>({id:d.id,...d.data()}))
-      .filter(g=>(g.type==='REPAIR'||g.type==='BORROWED') && g.status!=='REJECTED')
-      .sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+    const j=await apiGP('list',{ scope:'out', limit:50 });
+    const list=(j.data||[]).sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
     ALL=mergeAll(ALL,list);
     if(!list.length){ box.innerHTML='<div class="empty">Tidak ada barang di luar hotel. 🎉</div>'; return; }
     const canUpdate=g=>ME.isAdmin||ME.isHRD||ME.isFinance||ME.headOf.length||(g.requesterEmail||'').toLowerCase()===ME.email;
