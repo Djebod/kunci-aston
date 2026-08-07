@@ -90,6 +90,20 @@
   .mod.g:hover{border-color:#E0A93C}
   .mod.g .go{color:#E0A93C}
   .mod h2{font-size:22px;font-weight:600;text-transform:uppercase;line-height:1.05}
+  /* Bar neon biru bolak-balik di atas kartu */
+  .mod{overflow:hidden}
+  .mod .neon{position:absolute;top:0;left:0;right:0;height:3px;overflow:hidden;border-top-left-radius:16px;border-top-right-radius:16px;z-index:2}
+  .mod .neon::before{content:"";position:absolute;top:0;height:100%;width:42%;border-radius:99px;
+    background:linear-gradient(90deg,transparent,#38BDF8 18%,#7DD3FC 50%,#38BDF8 82%,transparent);
+    box-shadow:0 0 10px 2px rgba(56,189,248,.85),0 0 22px 4px rgba(56,189,248,.5);
+    animation:neonSlide 2.6s ease-in-out infinite;will-change:transform}
+  @keyframes neonSlide{
+    0%{transform:translateX(-110%)}
+    50%{transform:translateX(240%)}
+    100%{transform:translateX(-110%)}
+  }
+  .mod:hover .neon::before{animation-duration:1.4s}
+  @media(prefers-reduced-motion:reduce){.mod .neon::before{animation:none;left:0;right:0;width:100%;opacity:.5}}
   .mod p{color:var(--muted);font-size:13px;margin:8px 0 0}
   .mod .go{position:absolute;right:20px;bottom:18px;font-size:22px;transition:.15s}
   .mod:hover .go{transform:translateX(4px)}
@@ -153,6 +167,7 @@
 
   <div class="modules">
     <a class="mod k" href="kunci.html">
+      <span class="neon"></span>
       <div class="ico">
         <svg viewBox="0 0 24 24" fill="none" stroke="#C89B3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="8" cy="8" r="4.5"/><circle cx="8" cy="8" r="1.2" fill="#C89B3C"/>
@@ -160,11 +175,12 @@
         </svg>
       </div>
       <h2>Peminjaman &amp; Pengembalian Kunci</h2>
-      <p>Pinjam, kembalikan, dan lacak kunci antar shift.</p>
+      <p>Manajemen Peminjaman dan Pengembalian Kunci</p>
       <span class="go">→</span>
     </a>
 
     <a class="mod p" href="permit.html">
+      <span class="neon"></span>
       <div class="ico">
         <svg viewBox="0 0 24 24" fill="none" stroke="#5B93D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
@@ -172,11 +188,24 @@
         </svg>
       </div>
       <h2>Exit Permit</h2>
-      <p>Ajukan izin keluar / sakit dan alur persetujuan.</p>
+      <p>Pengajuan izin keluar / Sakit.</p>
+      <span class="go">→</span>
+    </a>
+
+    <a class="mod g" href="gatepass.html">
+      <span class="neon"></span>
+      <div class="ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#E0A93C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9h18M3 9l2-5h14l2 5M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M9 13h6"/>
+        </svg>
+      </div>
+      <h2>Gate Pass</h2>
+      <p>Manajemen Pencatatan barang keluar Hotel</p>
       <span class="go">→</span>
     </a>
 
     <a class="mod u hide" id="modUser" href="manageuser.html">
+      <span class="neon"></span>
       <span class="tag">Khusus</span>
       <div class="ico">
         <svg viewBox="0 0 24 24" fill="none" stroke="#2FB3A3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -186,17 +215,6 @@
       </div>
       <h2>Manage User</h2>
       <p>Kelola karyawan, departemen, role, Dept Head &amp; HRD.</p>
-      <span class="go">→</span>
-    </a>
-
-    <a class="mod g" href="gatepass.html">
-      <div class="ico">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#E0A93C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9h18M3 9l2-5h14l2 5M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9"/><path d="M9 13h6"/>
-        </svg>
-      </div>
-      <h2>Gate Pass</h2>
-      <p>Catat barang keluar hotel + alur persetujuan &amp; PDF.</p>
       <span class="go">→</span>
     </a>
   </div>
