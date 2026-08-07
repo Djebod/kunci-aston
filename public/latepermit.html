@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Late Permit — Aston Cirebon</title>
+<link rel="icon" href="favicon.svg">
+<style>
+:root{ --bg:#0b0e14; --card:#131826; --card2:#0f1420; --line:#232b3d; --txt:#e9edf5; --muted:#8b97ad;
+  --accent:#E8734E; --accent2:#f0946f; --ok:#37b26b; --bad:#e0574f; --warn:#e0a93c; }
+*{box-sizing:border-box} html,body{margin:0}
+body{background:var(--bg);color:var(--txt);font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;font-size:15px}
+a{color:var(--accent2)}
+.hide{display:none!important}
+.mono{font-variant-numeric:tabular-nums}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(11,14,20,.92);backdrop-filter:blur(6px);z-index:5}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{font-weight:800;letter-spacing:.5px}
+.brand small{color:var(--accent2);font-weight:700;letter-spacing:2px;font-size:11px}
+.me{text-align:right;line-height:1.25}
+.me b{font-size:14px}.me span{color:var(--muted);font-size:12px}
+.hbtns{display:flex;gap:8px}
+.hbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--txt);padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:600;font-size:13px}
+.hbtn.exit{color:#f3b3ad;border-color:#5a2a27;background:#241413}
+.hbtn.menu{color:var(--accent2);border-color:#5a382a;background:#241a13}
+nav{display:flex;gap:4px;padding:6px 14px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:none;color:var(--muted);padding:12px 16px;cursor:pointer;font-weight:700;letter-spacing:.5px;font-size:13px;border-bottom:2px solid transparent;white-space:nowrap}
+nav button.active{color:var(--txt);border-bottom-color:var(--accent)}
+main{max-width:1080px;margin:0 auto;padding:22px}
+h2{font-size:18px;letter-spacing:.5px;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card.scroll{overflow:auto}
+.field{margin-bottom:14px}
+.field label{display:block;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase}
+input,select,textarea{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px;font-size:15px;font-family:inherit}
+textarea{min-height:80px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.row{grid-template-columns:1fr}}
+.btn{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px 16px;cursor:pointer;font-weight:700;font-size:14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a0f0a}
+.btn.mini{padding:7px 12px;font-size:13px}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#04210f}
+.btn.bad{background:var(--bad);border-color:var(--bad);color:#2a0b09}
+.btn:disabled{opacity:.5;cursor:default}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.empty{color:var(--muted);text-align:center;padding:26px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.pill.ok{background:#123522;color:#5fd694}.pill.wait{background:#3a2f12;color:#e6c86a}.pill.bad{background:#3a1614;color:#f3897f}
+.note{color:var(--muted);font-size:12px;margin-top:8px}
+.gpcard{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--card2)}
+.gpcard .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.gpcard h4{margin:0 0 4px;font-size:15px}
+.gpcard .sub{color:var(--muted);font-size:12px}
+.gpcard .acts{display:flex;gap:8px;margin-top:10px}
+.foto{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#111623;border:1px solid var(--line);padding:12px 18px;border-radius:10px;font-size:14px;z-index:30;max-width:90vw}
+.toast.bad{border-color:#5a2a27;color:#f3b3ad}
+/* Login */
+.login{max-width:380px;margin:8vh auto;padding:26px}
+.login h1{font-size:20px;text-align:center;margin:0 0 4px}
+.login p{text-align:center;color:var(--muted);margin:0 0 20px;font-size:13px}
+.pwwrap{position:relative}.pwwrap .tgl{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px}
+.center{min-height:60vh;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="vLoad" class="center">Memuat…</div>
+
+<!-- LOGIN -->
+<div id="vLogin" class="hide">
+  <div class="login card">
+    <h1>Late Permit</h1>
+    <p>Aston Cirebon — masuk dengan akun portal Anda</p>
+    <div class="field"><label>Email</label><input id="liEmail" type="email" placeholder="nama@astoncirebon.com"></div>
+    <div class="field"><label>Password</label>
+      <div class="pwwrap"><input id="liPass" type="password" placeholder="••••••••">
+        <button class="tgl" id="liTgl" type="button">Lihat</button></div>
+    </div>
+    <button class="btn primary" id="liBtn" style="width:100%">Masuk</button>
+    <div class="note" id="liMsg"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="vApp" class="hide">
+  <header>
+    <div class="brand"><span class="logo">LATE PERMIT</span> <small>ASTON CIREBON</small></div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="me"><b id="meName">-</b><br><span id="meInfo">-</span></div>
+      <div class="hbtns">
+        <button class="hbtn menu" id="btnMenu">Menu</button>
+        <button class="hbtn exit" id="btnLogout">Keluar</button>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <button data-tab="tAjukan" class="active">AJUKAN</button>
+    <button data-tab="tMine">PENGAJUAN SAYA</button>
+    <button data-tab="tApprove" id="navApprove">PERSETUJUAN <span id="badge"></span></button>
+    <button data-tab="tAll" id="navAll">SEMUA</button>
+    <button data-tab="tAkun">AKUN</button>
+  </nav>
+
+  <main>
+    <!-- AJUKAN -->
+    <section id="tAjukan">
+      <h2>Ajukan Late Permit</h2>
+      <div class="card">
+        <div class="row">
+          <div class="field"><label>Tanggal terlambat</label><input id="fDate" type="date"></div>
+          <div class="field"><label>Jam masuk aktual</label><input id="fTime" type="time"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Shift</label>
+            <input id="fShift" list="shifts" placeholder="mis. BOH Jam 7 / Morning 8">
+            <datalist id="shifts">
+              <option>Early Morning 6</option><option>BOH Jam 7</option><option>Morning 7</option>
+              <option>BOH Jam 8</option><option>Morning 8</option><option>Middle 12</option>
+              <option>Middle 13</option><option>Evening 14</option><option>Evening 15</option>
+              <option>Evening 16</option><option>Night 24</option>
+            </datalist>
+          </div>
+          <div class="field"><label>Estimasi durasi terlambat</label><input id="fDur" placeholder="mis. 1:00:00"></div>
+        </div>
+        <div class="field"><label>Alasan terlambat</label><textarea id="fReason" placeholder="Tuliskan alasan keterlambatan"></textarea></div>
+        <div class="field"><label>Foto bukti (opsional)</label><input id="fFoto" type="file" accept="image/*"></div>
+        <button class="btn primary" id="btnSubmit" style="width:100%">Kirim pengajuan</button>
+        <div class="note">Pengajuan akan diteruskan ke Dept Head departemen Anda untuk disetujui / ditolak.</div>
+      </div>
+    </section>
+
+    <!-- PENGAJUAN SAYA -->
+    <section id="tMine" class="hide">
+      <h2>Pengajuan Saya</h2>
+      <div id="mineList"></div>
+    </section>
+
+    <!-- PERSETUJUAN -->
+    <section id="tApprove" class="hide">
+      <h2>Persetujuan (Dept Head)</h2>
+      <div id="apprList"></div>
+    </section>
+
+    <!-- SEMUA -->
+    <section id="tAll" class="hide">
+      <h2>Semua Late Permit</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <input id="fStat" placeholder="Filter status (PENDING_HOD/APPROVED/REJECTED)" style="max-width:280px">
+        <input id="fQ" placeholder="Cari nama / dept / alasan" style="max-width:280px">
+        <button class="btn mini" id="btnFilter">Terapkan</button>
+        <button class="btn mini" id="btnCsv">Export CSV</button>
+      </div>
+      <div class="card scroll"><table id="tblAll"></table></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+        <button class="btn mini" id="btnMore">Muat 15 data lagi</button>
+        <span id="allInfo" class="note" style="margin:0"></span>
+      </div>
+    </section>
+
+    <!-- AKUN -->
+    <section id="tAkun" class="hide">
+      <h2>Akun</h2>
+      <div class="card" style="max-width:460px">
+        <div class="field"><label>Nama</label><input id="akName" disabled></div>
+        <div class="field"><label>Email</label><input id="akEmail" disabled></div>
+        <div class="field"><label>Departemen / Level</label><input id="akDept" disabled></div>
+        <hr style="border-color:var(--line);margin:16px 0">
+        <div class="field"><label>Password lama</label>
+          <div class="pwwrap"><input id="pOld" type="password"><button class="tgl" data-for="pOld" type="button">Lihat</button></div></div>
+        <div class="field"><label>Password baru</label>
+          <div class="pwwrap"><input id="pNew" type="password"><button class="tgl" data-for="pNew" type="button">Lihat</button></div></div>
+        <div class="field"><label>Ulangi password baru</label>
+          <div class="pwwrap"><input id="pNew2" type="password"><button class="tgl" data-for="pNew2" type="button">Lihat</button></div></div>
+        <button class="btn primary" id="btnChpw">Ubah password</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+firebase.initializeApp(window.FIREBASE_CONFIG);
+const auth=firebase.auth(), db=firebase.firestore();
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ===== UPLOAD FOTO (pakai uploader yang sama dengan Gate Pass) ===== */
+const FOTO_API = 'https://script.google.com/macros/s/AKfycbyaCXWSIxs4f6WyTIUU8ncfVeH4Inh5UHzqq5LdmUuqmM5hCIHGh-yQtb2dNhOJenwTjg/exec';
+const FOTO_SECRET = 'AstonFoto_9x2K7pQ';
+
+/* ===== API Neon ===== */
+async function apiLP(action, payload){
+  const token = await auth.currentUser.getIdToken();
+  const res = await fetch('/api/latepermit/'+action,{
+    method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body: JSON.stringify(payload||{})
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||'Gagal');
+  return j;
+}
+
+let toastT;
+function toast(m,bad){ clearTimeout(toastT); document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const d=document.createElement('div'); d.className='toast'+(bad?' bad':''); d.textContent=m; document.body.appendChild(d);
+  toastT=setTimeout(()=>d.remove(),3500); }
+function fmtISO(s){ if(!s) return ''; const d=new Date(s); return isNaN(d)?'':d.toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function tsSec(s){ if(!s) return 0; const t=Date.parse(s); return isNaN(t)?0:t; }
+function statusPill(s){ if(s==='APPROVED')return '<span class="pill ok">Disetujui</span>';
+  if(s==='REJECTED')return '<span class="pill bad">Ditolak</span>'; return '<span class="pill wait">Menunggu</span>'; }
+
+/* ===== show password toggles ===== */
+document.addEventListener('click',e=>{
+  if(e.target.classList && e.target.classList.contains('tgl')){
+    const inp = e.target.id==='liTgl' ? $('liPass') : $(e.target.dataset.for);
+    if(inp){ inp.type = inp.type==='password'?'text':'password'; e.target.textContent = inp.type==='password'?'Lihat':'Tutup'; }
+  }
+});
+
+/* ===== ME (profil + peran dari Firestore) ===== */
+const ME={ email:'',name:'',dept:'',level:'',role:'STAFF',deptHeadEmails:[],isHead:false,isAdmin:false };
+const normDept=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+
+async function loadMe(user){
+  ME.email=(user.email||'').toLowerCase();
+  const uref=await db.collection('users').doc(ME.email).get();
+  const u=uref.exists?uref.data():{};
+  ME.name=u.nama||user.displayName||ME.email;
+  ME.dept=u.dept||u.department||'';
+  ME.level=u.level||u.jabatan||'';
+  ME.role=(u.role||'STAFF').toUpperCase();
+  ME.isAdmin = ME.role==='ADMIN'||ME.role==='SUPERADMIN';
+
+  // config/permit → deptHeads
+  let deptHeads={};
+  try{ const c=await db.collection('config').doc('permit').get(); if(c.exists) deptHeads=c.data().deptHeads||{}; }catch(e){}
+  // cocokkan dept ME dgn key deptHeads secara ternormalisasi
+  const myKey=normDept(ME.dept);
+  let heads=[];
+  Object.keys(deptHeads).forEach(k=>{ if(normDept(k)===myKey) heads=(deptHeads[k]||[]).map(x=>String(x).toLowerCase()); });
+  ME.deptHeadEmails=heads;
+  // apakah ME dept head (dari dept mana pun)?
+  ME.isHead=false;
+  Object.keys(deptHeads).forEach(k=>{ if((deptHeads[k]||[]).map(x=>String(x).toLowerCase()).includes(ME.email)) ME.isHead=true; });
+
+  $('meName').textContent=ME.name;
+  const roles=[ME.dept, ME.isHead?'DEPT HEAD':'', ME.isAdmin?'ADMIN':''].filter(Boolean).join(' · ');
+  $('meInfo').textContent=roles||ME.level;
+  $('akName').value=ME.name; $('akEmail').value=ME.email; $('akDept').value=(ME.dept+(ME.level?' / '+ME.level:''));
+
+  $('navApprove').classList.toggle('hide', !(ME.isHead));
+  $('navAll').classList.toggle('hide', !(ME.isHead||ME.isAdmin));
+}
+
+/* ===== tabs ===== */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
+  $(b.dataset.tab).classList.remove('hide');
+  if(b.dataset.tab==='tMine') loadMine();
+  if(b.dataset.tab==='tApprove') loadApprove();
+  if(b.dataset.tab==='tAll') loadAll();
+});
+$('btnMenu').onclick=()=>{ location.href='index.html'; };
+$('btnLogout').onclick=()=>auth.signOut();
+
+/* ===== Ajukan ===== */
+function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function nowTime(){ const d=new Date(); return d.toTimeString().slice(0,5); }
+function resetForm(){ $('fDate').value=todayStr(); $('fTime').value=nowTime(); $('fShift').value=''; $('fDur').value=''; $('fReason').value=''; $('fFoto').value=''; }
+
+async function fileToDataURL(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); }); }
+async function uploadFoto(dataURL){
+  if(!FOTO_API || FOTO_API.indexOf('GANTI_')===0) return '';
+  const res=await fetch(FOTO_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({secret:FOTO_SECRET,action:'upload',gpId:'LP',photos:[dataURL]})});
+  const j=await res.json(); if(!j.ok) throw new Error(j.error||'upload gagal');
+  return (j.urls&&j.urls[0])||'';
+}
+
+$('btnSubmit').onclick=async()=>{
+  const reason=$('fReason').value.trim();
+  if(!$('fDate').value) return toast('Isi tanggal.',true);
+  if(!$('fShift').value.trim()) return toast('Isi shift.',true);
+  if(!reason) return toast('Isi alasan terlambat.',true);
+  const b=$('btnSubmit'); b.disabled=true; b.textContent='Menyimpan…';
+  try{
+    let photoURL='';
+    const f=$('fFoto').files[0];
+    if(f){ b.textContent='Mengunggah foto…'; photoURL=await uploadFoto(await fileToDataURL(f)); }
+    b.textContent='Menyimpan…';
+    await apiLP('create',{
+      requesterName:ME.name, department:ME.dept, level:ME.level, deptHeadEmails:ME.deptHeadEmails,
+      lateDate:$('fDate').value, lateTime:$('fTime').value, shift:$('fShift').value.trim(),
+      reason, duration:$('fDur').value.trim(), photoURL
+    });
+    toast('Pengajuan terkirim. Menunggu Dept Head.');
+    resetForm();
+  }catch(e){ toast('Gagal: '+e.message,true); }
+  finally{ b.disabled=false; b.textContent='Kirim pengajuan'; }
+};
+
+/* ===== Pengajuan Saya ===== */
+function cardHtml(g, withActs){
+  const foto = g.photoURL && /^https?:\/\//.test(g.photoURL) ? `<img class="foto" src="${esc(g.photoURL)}" alt="foto">` : '';
+  const rej = g.status==='REJECTED' && g.rejectedReason ? `<div class="sub" style="color:#f3897f">Alasan tolak: ${esc(g.rejectedReason)}</div>` : '';
+  const acts = withActs ? `<div class="acts">
+      <button class="btn ok mini" data-appr="${esc(g.id)}">Setujui</button>
+      <button class="btn bad mini" data-rej="${esc(g.id)}">Tolak</button></div>` : '';
+  return `<div class="gpcard">
+    <div class="top">
+      <div>
+        <h4>${esc(g.requesterName)} <span class="sub">· ${esc(g.department)}${g.level?(' · '+esc(g.level)):''}</span></h4>
+        <div class="sub">${esc(g.lateDate)} ${esc(g.lateTime)} · Shift: ${esc(g.shift)||'-'} · Durasi: ${esc(g.duration)||'-'}</div>
+        <div style="margin-top:6px">${esc(g.reason)}</div>
+        ${rej}
+      </div>
+      <div style="text-align:right">${statusPill(g.status)}<div style="margin-top:8px">${foto}</div></div>
+    </div>${acts}
+  </div>`;
+}
+
+async function loadMine(){
+  const box=$('mineList'); box.innerHTML='<div class="empty">Memuat…</div>';
+  try{
+    const j=await apiLP('list',{scope:'mine',email:ME.email,limit:50,offset:0});
+    const arr=(j.data||[]).sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+    box.innerHTML = arr.length? arr.map(g=>cardHtml(g,false)).join('') : '<div class="empty">Belum ada pengajuan.</div>';
+  }catch(e){ box.innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+}
+
+/* ===== Persetujuan ===== */
+async function loadApprove(){
+  const box=$('apprList'); box.innerHTML='<div class="empty">Memuat…</div>';
+  try{
+    const j=await apiLP('list',{scope:'pending',email:ME.email});
+    const arr=(j.data||[]).sort((a,b)=>tsSec(b.createdAt)-tsSec(a.createdAt));
+    $('badge').textContent = arr.length? '('+arr.length+')' : '';
+    box.innerHTML = arr.length? arr.map(g=>cardHtml(g,true)).join('') : '<div class="empty">Tidak ada yang menunggu persetujuan.</div>';
+    box.querySelectorAll('[data-appr]').forEach(btn=>btn.onclick=()=>doApprove(btn.dataset.appr,btn));
+    box.querySelectorAll('[data-rej]').forEach(btn=>btn.onclick=()=>doReject(btn.dataset.rej,btn));
+  }catch(e){ box.innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+}
+async function refreshBadge(){
+  if(!ME.isHead) return;
+  try{ const j=await apiLP('list',{scope:'pending',email:ME.email}); $('badge').textContent=(j.data&&j.data.length)?'('+j.data.length+')':''; }catch(e){}
+}
+async function doApprove(id,btn){
+  const note=prompt('Catatan (opsional):'); if(note===null) return;
+  btn.disabled=true;
+  try{ await apiLP('approve',{id,actorName:ME.name,note}); toast('Disetujui.'); loadApprove(); }
+  catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
+}
+async function doReject(id,btn){
+  const note=prompt('Alasan penolakan:'); if(note===null) return; if(!note.trim()) return toast('Alasan wajib diisi.',true);
+  btn.disabled=true;
+  try{ await apiLP('reject',{id,actorName:ME.name,note}); toast('Ditolak.'); loadApprove(); }
+  catch(e){ toast('Gagal: '+e.message,true); btn.disabled=false; }
+}
+
+/* ===== Semua (paginasi 15) ===== */
+const PAGE_SIZE=15; let ALL=[], allEnd=false, allLoading=false;
+async function loadAll(){ ALL=[]; allEnd=false; $('tblAll').innerHTML='<tr><td class="empty">Memuat…</td></tr>'; await loadMoreAll(); }
+async function loadMoreAll(){
+  if(allLoading||allEnd) return; allLoading=true;
+  const b=$('btnMore'); if(b){b.disabled=true;b.textContent='Memuat…';}
+  try{
+    const j=await apiLP('list',{scope:'all',limit:PAGE_SIZE,offset:ALL.length});
+    const batch=j.data||[]; ALL=ALL.concat(batch); if(batch.length<PAGE_SIZE) allEnd=true; renderAll();
+  }catch(e){ $('tblAll').innerHTML=`<tr><td class="empty">${esc(e.message)}</td></tr>`; }
+  finally{ allLoading=false; const b2=$('btnMore'); if(b2){b2.disabled=allEnd;b2.textContent=allEnd?'Semua data termuat':'Muat 15 data lagi';} }
+}
+function filteredAll(){
+  const st=$('fStat').value.trim().toUpperCase(), q=$('fQ').value.trim().toUpperCase();
+  return ALL.filter(g=>{ if(st && String(g.status).toUpperCase().indexOf(st)<0) return false;
+    if(q){ const hay=((g.requesterName||'')+' '+(g.department||'')+' '+(g.reason||'')).toUpperCase(); if(hay.indexOf(q)<0) return false; } return true; });
+}
+function renderAll(){
+  const rows=filteredAll(); const t=$('tblAll');
+  const info=$('allInfo'); if(info) info.textContent='Menampilkan '+rows.length+' dari '+ALL.length+' data dimuat'+(allEnd?'':' · klik "Muat 15 lagi"');
+  t.innerHTML=`<thead><tr><th>Tanggal</th><th>Nama</th><th>Dept</th><th>Shift</th><th>Durasi</th><th>Alasan</th><th>Status</th></tr></thead><tbody>`+
+    (rows.length?rows.map(g=>`<tr>
+      <td class="mono" style="white-space:nowrap">${esc(g.lateDate)} ${esc(g.lateTime)}</td>
+      <td>${esc(g.requesterName)}</td>
+      <td style="color:var(--muted)">${esc(g.department)}</td>
+      <td>${esc(g.shift)}</td><td class="mono">${esc(g.duration)}</td>
+      <td style="max-width:240px">${esc(g.reason)}</td>
+      <td>${statusPill(g.status)}</td>
+    </tr>`).join(''):'<tr><td class="empty" colspan="7">Tidak ada data.</td></tr>')+'</tbody>';
+}
+document.addEventListener('click',e=>{ if(e.target&&e.target.id==='btnMore') loadMoreAll(); });
+$('btnFilter').onclick=renderAll;
+$('btnCsv').onclick=()=>{
+  const rows=filteredAll();
+  const head=['Tanggal','Jam','Nama','Email','Dept','Level','Shift','Durasi','Alasan','Status'];
+  const csv=[head.join(',')].concat(rows.map(g=>[g.lateDate,g.lateTime,g.requesterName,g.requesterEmail,g.department,g.level,g.shift,g.duration,(g.reason||'').replace(/"/g,'""'),g.status]
+    .map(x=>`"${String(x==null?'':x)}"`).join(','))).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='late-permit.csv'; a.click();
+};
+
+/* ===== Ubah password ===== */
+$('btnChpw').onclick=async()=>{
+  const oldp=$('pOld').value, n1=$('pNew').value, n2=$('pNew2').value;
+  if(!oldp||!n1) return toast('Lengkapi password.',true);
+  if(n1!==n2) return toast('Ulangi password tidak sama.',true);
+  if(n1.length<6) return toast('Password minimal 6 karakter.',true);
+  try{
+    const cred=firebase.auth.EmailAuthProvider.credential(ME.email,oldp);
+    await auth.currentUser.reauthenticateWithCredential(cred);
+    await auth.currentUser.updatePassword(n1);
+    $('pOld').value=$('pNew').value=$('pNew2').value='';
+    toast('Password berhasil diubah.');
+  }catch(e){ toast('Gagal: '+(e.code==='auth/wrong-password'?'password lama salah':e.message),true); }
+};
+
+/* ===== Login ===== */
+$('liBtn').onclick=async()=>{
+  const em=$('liEmail').value.trim().toLowerCase(), pw=$('liPass').value;
+  if(!em||!pw) return ($('liMsg').textContent='Isi email & password.');
+  $('liBtn').disabled=true; $('liMsg').textContent='Masuk…';
+  try{ await auth.signInWithEmailAndPassword(em,pw); }
+  catch(e){ $('liMsg').textContent = e.code==='auth/invalid-credential'?'Email atau password salah.':e.message; $('liBtn').disabled=false; }
+};
+$('liPass').addEventListener('keydown',e=>{ if(e.key==='Enter') $('liBtn').click(); });
+
+/* ===== Auth state ===== */
+auth.onAuthStateChanged(async(user)=>{
+  if(!user){ $('vLoad').classList.add('hide'); $('vApp').classList.add('hide'); $('vLogin').classList.remove('hide'); $('liBtn').disabled=false; return; }
+  $('vLogin').classList.add('hide'); $('vLoad').classList.remove('hide');
+  try{
+    await loadMe(user);
+    $('vLoad').classList.add('hide'); $('vApp').classList.remove('hide');
+    resetForm(); refreshBadge();
+  }catch(e){ $('vLoad').innerHTML='<div class="empty">Gagal memuat profil: '+esc(e.message)+'</div>'; }
+});
+</script>
+</body>
+</html>
