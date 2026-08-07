@@ -160,14 +160,14 @@
             </select></div>
           <div class="field"><label>Departemen</label><input id="fDept" disabled></div>
         </div>
-        <div class="field"><label>Keperluan / keterangan</label><textarea id="fPurpose" placeholder="mis. rusak, perlu perbaikan ke Service Center"></textarea></div>
+        <div class="field"><label>Keperluan / keterangan</label><textarea id="fPurpose" placeholder="mis. rusak, perlu perbaikan ke Asia Computer"></textarea></div>
 
         <label>Daftar barang</label>
         <div id="items"></div>
         <button class="btn mini" id="btnAddItem" style="margin:4px 0 16px">+ Tambah barang</button>
 
         <button class="btn primary" id="btnSubmit" style="width:100%">Kirim pengajuan</button>
-        <p class="note" id="submitNote" style="margin-top:10px">Foto opsional per barang (tersimpan di Google Drive). Untuk REPAIR &amp; BORROWED, status barang otomatis "Di luar hotel" dan bisa diubah "Sudah kembali" nanti.</p>
+        <p class="note" id="submitNote" style="margin-top:10px">Foto setiap barang <b style="color:var(--paper)">wajib</b> (tersimpan di Google Drive). Untuk REPAIR &amp; BORROWED, status barang menjadi "Di luar hotel" dan harus diubah menjadi "Sudah kembali" setelah dikembalikan / diperbaiki.</p>
       </div>
     </section>
 
@@ -227,8 +227,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 /* ====== UPLOAD FOTO KE DRIVE (Apps Script mini) ======
    Tempel Web app URL dari gatepass-foto.gs + SECRET yang sama.
    Kalau dibiarkan 'GANTI_...', foto dilewati (data tetap tersimpan). */
-const FOTO_API = 'https://script.google.com/macros/s/AKfycbyaCXWSIxs4f6WyTIUU8ncfVeH4Inh5UHzqq5LdmUuqmM5hCIHGh-yQtb2dNhOJenwTjg/exec';
-const FOTO_SECRET = 'qawsedrf!2026';
+const FOTO_API = 'GANTI_URL_APPS_SCRIPT_FOTO';
+const FOTO_SECRET = 'GANTI_DENGAN_KATA_SANDI_RAHASIA_ACAK';
 
 let toastT;
 function toast(m,e){clearTimeout(toastT);document.querySelectorAll('.toast').forEach(t=>t.remove());const el=document.createElement('div');el.className='toast'+(e?' err':'');el.textContent=m;document.body.appendChild(el);toastT=setTimeout(()=>el.remove(),4000);}
@@ -318,9 +318,12 @@ function addItem(){
   const d=document.createElement('div');d.style.marginTop='-2px';d.style.marginBottom='6px';
   d.innerHTML=`<div class="grid2">
     <input class="it-desc" placeholder="Deskripsi (opsional)">
-    <div style="display:flex;gap:8px;align-items:center">
-      <input class="it-photo" type="file" accept="image/*" capture="environment" style="font-size:12px;padding:8px">
-      <img class="it-thumb thumb hide" alt="">
+    <div>
+      <div style="font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;font-weight:600">Foto barang (wajib)</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="it-photo" type="file" accept="image/*" capture="environment" style="font-size:12px;padding:8px">
+        <img class="it-thumb thumb hide" alt="">
+      </div>
     </div></div>`;
   wrap.appendChild(i);wrap.appendChild(d);
   const ph=d.querySelector('.it-photo'), th=d.querySelector('.it-thumb');
@@ -343,12 +346,20 @@ $('btnSubmit').onclick=async()=>{
   })).filter(x=>x.name);
   if(!items.length) return toast('Isi minimal satu barang.',true);
   if(!purpose) return toast('Keperluan wajib diisi.',true);
+  // Foto WAJIB tiap barang
+  const tanpaFoto=items.filter(x=>!x.photoB64).length;
+  if(tanpaFoto) return toast('Foto wajib untuk setiap barang. '+tanpaFoto+' barang belum ada foto.',true);
+  if(!FOTO_API || FOTO_API.indexOf('GANTI_')===0) return toast('Upload foto belum diatur (FOTO_API). Hubungi admin.',true);
   const heads=(CFG.deptHeads&&CFG.deptHeads[ME.dept]?CFG.deptHeads[ME.dept]:[]).map(x=>x.toLowerCase());
   const b=$('btnSubmit');b.disabled=true;b.textContent='Mengunggah foto…';
   try{
     const gpId='GP'+Date.now().toString(36).toUpperCase();
-    // 1) upload foto ke Drive → URL
+    // 1) upload foto ke Drive → URL (wajib berhasil)
     const urls=await uploadFotos(gpId, items.map(it=>it.photoB64));
+    if(urls.filter(Boolean).length < items.length){
+      b.disabled=false;b.textContent='Kirim pengajuan';
+      return toast('Gagal mengunggah sebagian foto. Coba lagi.',true);
+    }
     const itemsClean=items.map((it,idx)=>({ name:it.name, qty:it.qty, unit:it.unit, description:it.description, photoURL:urls[idx]||'' }));
     b.textContent='Menyimpan…';
     const follow=(type==='REPAIR'||type==='BORROWED');
